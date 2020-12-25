@@ -10,6 +10,7 @@ using System.Windows;
 using System.Text.Json;
 using FmpDataTool.Model;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace FmpDataTool
 {
@@ -26,6 +27,8 @@ namespace FmpDataTool
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
+
+        private DispatcherTimer timer;
 
         /// <summary>
         /// MainWindowViewModel - Static
@@ -48,6 +51,10 @@ namespace FmpDataTool
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
+
+            timer = new DispatcherTimer();
+            timer.Tick += Timer_Tick;
+            timer.Interval = new TimeSpan(0, 0, 0, 0, 25);
         }
 
         /// <summary>
@@ -102,7 +109,8 @@ namespace FmpDataTool
         /// <returns></returns>
         private async Task GetStockList(object param)
         {
-            Log += "\r\nRequesting stock list...";
+            Log = "Requesting stock list...";
+            timer.Start();
 
             using var httpClient = new HttpClient();
             await httpClient.GetAsync(UrlStockList).ContinueWith((r) => OnRequestStockListCompleteAsync(r));
@@ -128,7 +136,19 @@ namespace FmpDataTool
         {
             StockList = stockList;
             ResultsStockList = JsonSerializer.Serialize(StockList);
+            timer.Stop();
             Log += "\r\nOK! stock list recieved.";
+            ProgressValue = 0;
+        }
+
+        /// <summary>
+        /// Timer_Tick
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            ProgressValue++;
         }
     }
 }

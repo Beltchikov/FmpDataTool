@@ -44,7 +44,7 @@
                         <RowDefinition Height="35"></RowDefinition>
                         <RowDefinition Height="400"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
-                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="15"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
@@ -84,10 +84,12 @@
                             <TextBox x:Name="txtResult" Text="{Binding ResultsStockList}"/>
                         </ScrollViewer>
                     </Grid>
-                    <ProgressBar Maximum="100" Minimum="0" 
+                    <ProgressBar x:Name="prgStockList"
+                                Maximum="750" Minimum="0" 
                                  Value="{Binding ProgressValue}"
                                  Grid.Row="3"
-                                 Margin="5,0,5,0"/>
+                                 Margin="45,0,5,0">
+                    </ProgressBar>
                     <Grid Grid.Row="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
@@ -98,7 +100,7 @@
                         <TextBlock Grid.Column="1">Log:</TextBlock>
                         <TextBox x:Name="txtLog" Grid.Column="2" Text="{Binding Log}"/>
                     </Grid>
-                          </Grid>
+                </Grid>
             </TabItem>
             <TabItem Header="Financials">
 
