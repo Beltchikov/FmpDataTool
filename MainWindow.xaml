@@ -88,7 +88,7 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Log:</TextBlock>
-                        <TextBox x:Name="txtLog" Grid.Column="2" Text="{Binding ResultsStockList}"/>
+                        <TextBox x:Name="txtLog" Grid.Column="2" Text="{Binding Log}"/>
                     </Grid>
                 </Grid>
             </TabItem>
