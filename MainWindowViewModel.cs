@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Text.Json;
+using FmpDataTool.Model;
 
 namespace FmpDataTool
 {
@@ -17,6 +20,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlStockListProperty;
         public static readonly DependencyProperty ResultsStockListProperty;
         public static readonly DependencyProperty LogProperty;
+        public static readonly DependencyProperty StockListProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -29,8 +33,8 @@ namespace FmpDataTool
             UrlStockListProperty = DependencyProperty.Register("UrlStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogProperty = DependencyProperty.Register("Log", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-
-        }
+            StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
+    }
 
         /// <summary>
         /// MainWindowViewModel
@@ -60,26 +64,46 @@ namespace FmpDataTool
             get { return (string)GetValue(LogProperty); }
             set { SetValue(LogProperty, value); }
         }
-
+        public Stock[] StockList
+        {
+            get { return (Stock[])GetValue(StockListProperty); }
+            set { SetValue(StockListProperty, value); }
+        }
 
         private async Task GetStockList(object param)
         {
             Log += "\r\nRequesting stock list...";
 
             using var httpClient = new HttpClient();
-            await httpClient.GetAsync(UrlStockList).ContinueWith((r) => OnRequestStockListComplete(r));
-
+            await httpClient.GetAsync(UrlStockList).ContinueWith((r) => OnRequestStockListCompleteAsync(r));
         }
 
-        private void OnRequestStockListComplete(Task<HttpResponseMessage> requestTask)
+        private async Task OnRequestStockListCompleteAsync(Task<HttpResponseMessage> requestTask)
         {
             HttpResponseMessage httpResponseMessage = requestTask.Result;
+            var contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
+
+            //using StreamReader streamReader = new StreamReader(contentStream);
+            //Utf8JsonReader utf8Reader = new Utf8JsonReader(contentStream);
+            //using var jsonReader = new JsonTextReader(streamReader);
+
+            Stock[] json;
+
+            try
+            {
+                json = await JsonSerializer.DeserializeAsync<Stock[]>(contentStream);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
 
             // TODO
             //var contentStream = await requestTask.Content.ReadAsStreamAsync();
             //ResultsStockList = response.ToString();
             Dispatcher.Invoke(SetData);
-      
+
         }
 
         private void SetData()
