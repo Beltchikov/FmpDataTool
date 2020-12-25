@@ -11,9 +11,11 @@ namespace FmpDataTool
     /// </summary>
     public class MainWindowViewModel : DependencyObject
     {
-        public RelayCommand CommandRequestNavigate { get; set; }
         public static readonly DependencyProperty UrlStockListProperty;
         public static readonly DependencyProperty ResultsStockListProperty;
+
+        public RelayCommand CommandRequestNavigate { get; set; }
+        public RelayCommand CommandGetStockList { get; set; }
 
         /// <summary>
         /// MainWindowViewModel - Static
@@ -29,8 +31,10 @@ namespace FmpDataTool
         /// </summary>
         public MainWindowViewModel()
         {
-            CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             UrlStockList = "https://financialmodelingprep.com/api/v3/stock/list?apikey=14e7a22ed6110f130afa41af05599bb6";
+
+            CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
+            CommandGetStockList = new RelayCommand(GetStockList);
         }
 
         public string UrlStockList
@@ -39,15 +43,16 @@ namespace FmpDataTool
             set { SetValue(UrlStockListProperty, value); }
         }
 
-
-
         public string ResultsStockList
         {
             get { return (string)GetValue(ResultsStockListProperty); }
             set { SetValue(ResultsStockListProperty, value); }
         }
 
+        private void GetStockList(object param)
+        {
 
+        }
 
 
 

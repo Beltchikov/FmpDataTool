@@ -66,7 +66,8 @@
                      Text="{Binding UrlStockList}"/>
                         <Button x:Name="btnGetStockList" 
                                 Width="100" Grid.Column="4"
-                                Grid.Row="1">GET
+                                Grid.Row="1"
+                                Command ="{Binding CommandGetStockList}">GET
                         </Button>
                     </Grid>
                     <Grid Grid.Row="1">
