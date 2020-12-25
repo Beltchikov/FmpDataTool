@@ -5,7 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FmpDataTool"
         mc:Ignorable="d"
-        Title="FMP Data Tool" Height="450" Width="800">
+        Title="FMP Data Tool" Height="450" Width="800" >
+    <Window.Resources>
+        <local:MainWindowViewModel x:Key="ViewModel" />
+    </Window.Resources>
+    <Window.DataContext>
+        <StaticResource ResourceKey="ViewModel" />
+    </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
             
@@ -19,12 +25,12 @@
         <TextBlock Grid.Row="0" 
                    Grid.ColumnSpan="2"
                    Margin="5,5,5,5">           
-        <Hyperlink Name="lnkCftc"
+        <Hyperlink Name="lnkFmp"
             NavigateUri="https://financialmodelingprep.com/developer/docs/" 
                    Foreground="Black"
                    Command="{Binding CommandRequestNavigate}"
-                   CommandParameter="{Binding ElementName=lnkCftc, Path=NavigateUri}"
-                   CommandTarget="{Binding ElementName=lnkCftc}"
+                   CommandParameter="{Binding ElementName=lnkFmp, Path=NavigateUri}"
+                   CommandTarget="{Binding ElementName=lnkFmp}"
                    >
             https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm
         </Hyperlink>
