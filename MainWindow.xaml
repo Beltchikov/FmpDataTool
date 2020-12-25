@@ -14,13 +14,12 @@
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
-            
+
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="35"></RowDefinition>
-            
             <RowDefinition Height="*"></RowDefinition>
-                </Grid.RowDefinitions>
+        </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" 
                    Grid.ColumnSpan="2"
@@ -38,12 +37,43 @@
 
         <TabControl x:Name="tabControl" Grid.Row="1">
             <TabItem Header="Stock List">
-                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="40"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="100"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="10"></RowDefinition>
+                            <RowDefinition Height="20"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock  Grid.Column="1" 
+                                    Grid.Row="1">URL:</TextBlock>
+                        <TextBox x:Name="txtAsset" Grid.Column="2" Grid.Row="1"
+                     Text="{Binding AssetFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button x:Name="btnGetStockList" 
+                                Width="100" Grid.Column="4"
+                                Grid.Row="1">GET
+                        </Button>
+                    </Grid>
+                </Grid>
             </TabItem>
             <TabItem Header="Financials">
-                
+
             </TabItem>
         </TabControl>
+
+
 
     </Grid>
 </Window>
