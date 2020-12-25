@@ -1,0 +1,43 @@
+﻿<Window x:Class="FmpDataTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FmpDataTool"
+        mc:Ignorable="d"
+        Title="FMP Data Tool" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35"></RowDefinition>
+            
+            <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Grid.ColumnSpan="2"
+                   Margin="5,5,5,5">           
+        <Hyperlink Name="lnkCftc"
+            NavigateUri="https://financialmodelingprep.com/developer/docs/" 
+                   Foreground="Black"
+                   Command="{Binding CommandRequestNavigate}"
+                   CommandParameter="{Binding ElementName=lnkCftc, Path=NavigateUri}"
+                   CommandTarget="{Binding ElementName=lnkCftc}"
+                   >
+            https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm
+        </Hyperlink>
+        </TextBlock>
+
+        <TabControl x:Name="tabControl" Grid.Row="1">
+            <TabItem Header="Stock List">
+                
+            </TabItem>
+            <TabItem Header="Financials">
+                
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
