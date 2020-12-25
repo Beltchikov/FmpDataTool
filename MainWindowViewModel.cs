@@ -11,6 +11,7 @@ using System.Text.Json;
 using FmpDataTool.Model;
 using System.Linq;
 using System.Windows.Threading;
+using Microsoft.Win32;
 
 namespace FmpDataTool
 {
@@ -24,9 +25,11 @@ namespace FmpDataTool
         public static readonly DependencyProperty LogProperty;
         public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueProperty;
+        public static readonly DependencyProperty FileNameStockListProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
+        public RelayCommand CommandSelectFile { get; set; }
 
         private DispatcherTimer timer;
 
@@ -40,6 +43,7 @@ namespace FmpDataTool
             LogProperty = DependencyProperty.Register("Log", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
         }
 
         /// <summary>
@@ -51,6 +55,7 @@ namespace FmpDataTool
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
+            CommandSelectFile = new RelayCommand((p) => SelectFile(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -103,6 +108,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// FileNameStockList
+        /// </summary>
+        public string FileNameStockList
+        {
+            get { return (string)GetValue(FileNameStockListProperty); }
+            set { SetValue(FileNameStockListProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -149,6 +163,20 @@ namespace FmpDataTool
         private void Timer_Tick(object sender, EventArgs e)
         {
             ProgressValue++;
+        }
+
+        /// <summary>
+        /// SelectFile
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        private void SelectFile(object p)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if ((bool)openFileDialog.ShowDialog())
+            {
+                FileNameStockList = openFileDialog.FileName;
+            }
         }
     }
 }
