@@ -34,7 +34,7 @@ namespace FmpDataTool
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogProperty = DependencyProperty.Register("Log", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
-    }
+        }
 
         /// <summary>
         /// MainWindowViewModel
@@ -47,69 +47,75 @@ namespace FmpDataTool
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
         }
 
+        /// <summary>
+        /// UrlStockList
+        /// </summary>
         public string UrlStockList
         {
             get { return (string)GetValue(UrlStockListProperty); }
             set { SetValue(UrlStockListProperty, value); }
         }
 
+        /// <summary>
+        /// ResultsStockList
+        /// </summary>
         public string ResultsStockList
         {
             get { return (string)GetValue(ResultsStockListProperty); }
             set { SetValue(ResultsStockListProperty, value); }
         }
 
+        /// <summary>
+        /// Log
+        /// </summary>
         public string Log
         {
             get { return (string)GetValue(LogProperty); }
             set { SetValue(LogProperty, value); }
         }
+
+        /// <summary>
+        /// StockList
+        /// </summary>
         public Stock[] StockList
         {
             get { return (Stock[])GetValue(StockListProperty); }
             set { SetValue(StockListProperty, value); }
         }
 
+        /// <summary>
+        /// GetStockList
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         private async Task GetStockList(object param)
         {
             Log += "\r\nRequesting stock list...";
-
             using var httpClient = new HttpClient();
             await httpClient.GetAsync(UrlStockList).ContinueWith((r) => OnRequestStockListCompleteAsync(r));
         }
 
+        /// <summary>
+        /// OnRequestStockListCompleteAsync
+        /// </summary>
+        /// <param name="requestTask"></param>
+        /// <returns></returns>
         private async Task OnRequestStockListCompleteAsync(Task<HttpResponseMessage> requestTask)
         {
-            HttpResponseMessage httpResponseMessage = requestTask.Result;
-            var contentStream = await httpResponseMessage.Content.ReadAsStreamAsync();
-
-            //using StreamReader streamReader = new StreamReader(contentStream);
-            //Utf8JsonReader utf8Reader = new Utf8JsonReader(contentStream);
-            //using var jsonReader = new JsonTextReader(streamReader);
-
-            Stock[] json;
-
-            try
-            {
-                json = await JsonSerializer.DeserializeAsync<Stock[]>(contentStream);
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-
-            // TODO
-            //var contentStream = await requestTask.Content.ReadAsStreamAsync();
-            //ResultsStockList = response.ToString();
-            Dispatcher.Invoke(SetData);
-
+            var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
+            Stock[] stockList = await JsonSerializer.DeserializeAsync<Stock[]>(contentStream);
+            Dispatcher.Invoke(() => SetDataStockList(stockList));
         }
 
-        private void SetData()
+        /// <summary>
+        /// SetDataStockList
+        /// </summary>
+        /// <param name="stockList"></param>
+        private void SetDataStockList(Stock[] stockList)
         {
+            StockList = stockList;
+            ResultsStockList = JsonSerializer.Serialize(StockList);
             Log += "\r\nOK! stock list recieved.";
         }
-
     }
 }

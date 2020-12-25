@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace FmpDataTool.Model
 {
+    /// <summary>
+    /// Stock
+    /// </summary>
     public class Stock
     {
         [JsonPropertyName("symbol")]
