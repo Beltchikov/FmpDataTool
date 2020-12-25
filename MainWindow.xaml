@@ -43,7 +43,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="35"></RowDefinition>
                         <RowDefinition Height="200"></RowDefinition>
+                        <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="10"></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -76,6 +78,16 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Result:</TextBlock>
                         <TextBox x:Name="txtResult" Grid.Column="2" Text="{Binding ResultsStockList}"/>
+                    </Grid>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="40"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="1">Log:</TextBlock>
+                        <TextBox x:Name="txtLog" Grid.Column="2" Text="{Binding ResultsStockList}"/>
                     </Grid>
                 </Grid>
             </TabItem>
