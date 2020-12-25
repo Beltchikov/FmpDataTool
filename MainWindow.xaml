@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FmpDataTool"
         mc:Ignorable="d"
-        Title="FMP Data Tool" Height="450" Width="800" >
+        Title="FMP Data Tool" Height="800" Width="1400" >
     <Window.Resources>
         <local:MainWindowViewModel x:Key="ViewModel" />
     </Window.Resources>
@@ -31,7 +31,7 @@
                    CommandParameter="{Binding ElementName=lnkFmp, Path=NavigateUri}"
                    CommandTarget="{Binding ElementName=lnkFmp}"
                    >
-            https://www.cftc.gov/MarketReports/CommitmentsofTraders/HistoricalCompressed/index.htm
+            https://financialmodelingprep.com/developer/docs/
         </Hyperlink>
         </TextBlock>
 
@@ -42,7 +42,9 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="35"></RowDefinition>
-                        <RowDefinition Height="200"></RowDefinition>
+                        <RowDefinition Height="400"></RowDefinition>
+                        <RowDefinition Height="10"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
@@ -78,9 +80,15 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Result:</TextBlock>
-                        <TextBox x:Name="txtResult" Grid.Column="2" Text="{Binding ResultsStockList}"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
+                            <TextBox x:Name="txtResult" Text="{Binding ResultsStockList}"/>
+                        </ScrollViewer>
                     </Grid>
-                    <Grid Grid.Row="3">
+                    <ProgressBar Maximum="100" Minimum="0" 
+                                 Value="{Binding ProgressValue}"
+                                 Grid.Row="3"
+                                 Margin="5,0,5,0"/>
+                    <Grid Grid.Row="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="40"></ColumnDefinition>
@@ -90,7 +98,7 @@
                         <TextBlock Grid.Column="1">Log:</TextBlock>
                         <TextBox x:Name="txtLog" Grid.Column="2" Text="{Binding Log}"/>
                     </Grid>
-                </Grid>
+                          </Grid>
             </TabItem>
             <TabItem Header="Financials">
 

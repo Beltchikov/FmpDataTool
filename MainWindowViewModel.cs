@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Text.Json;
 using FmpDataTool.Model;
+using System.Linq;
 
 namespace FmpDataTool
 {
@@ -21,6 +22,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty ResultsStockListProperty;
         public static readonly DependencyProperty LogProperty;
         public static readonly DependencyProperty StockListProperty;
+        public static readonly DependencyProperty ProgressValueProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -34,6 +36,7 @@ namespace FmpDataTool
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogProperty = DependencyProperty.Register("Log", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
+            ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
         }
 
         /// <summary>
@@ -84,6 +87,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// ProgressValue
+        /// </summary>
+        public int ProgressValue
+        {
+            get { return (int)GetValue(ProgressValueProperty); }
+            set { SetValue(ProgressValueProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -91,6 +103,7 @@ namespace FmpDataTool
         private async Task GetStockList(object param)
         {
             Log += "\r\nRequesting stock list...";
+
             using var httpClient = new HttpClient();
             await httpClient.GetAsync(UrlStockList).ContinueWith((r) => OnRequestStockListCompleteAsync(r));
         }
