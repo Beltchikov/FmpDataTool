@@ -211,7 +211,7 @@ namespace FmpDataTool
         {
             if (File.Exists(FileNameStockList))
             {
-                MessageBoxResult messageBoxResult = MessageBox.Show("The file exists allready. Do you want to overwrite it?", "Warning! File exists!", MessageBoxButton.YesNo);
+                MessageBoxResult messageBoxResult = MessageBox.Show("The file exists already. Do you want to overwrite it?", "Warning! File exists!", MessageBoxButton.YesNo);
                 if (messageBoxResult == MessageBoxResult.Yes)
                 {
                     File.WriteAllText(FileNameStockList, ResultsStockList);
@@ -241,10 +241,24 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private void SaveToDatabase(object p)
         {
+            if (DataContext.Instance.Stocks.Any())
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("Database table 'Stocks' has already data. Do you want to overwrite it?", "Warning! Data exists!", MessageBoxButton.YesNo);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                {
+                    DataContext.Instance.Stocks.RemoveRange(DataContext.Instance.Stocks);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             Log += "Saving to database...";
             DataContext.Instance.Stocks.AddRange(StockList);
             DataContext.Instance.SaveChanges();
             Log += "\r\nOK! Saved to database.";
+
         }
     }
 }
