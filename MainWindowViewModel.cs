@@ -52,6 +52,7 @@ namespace FmpDataTool
         public MainWindowViewModel()
         {
             UrlStockList = "https://financialmodelingprep.com/api/v3/stock/list?apikey=14e7a22ed6110f130afa41af05599bb6";
+            FileNameStockList = @"C:\Users\Jogger\Google Drive\Wirtschaft\Trading\Aktien\stocklist.json";
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -123,6 +124,8 @@ namespace FmpDataTool
         /// <returns></returns>
         private async Task GetStockList(object param)
         {
+            Array.Clear(StockList, 0, StockList.Length);
+            ResultsStockList = string.Empty;
             Log = "Requesting stock list...";
             timer.Start();
 
