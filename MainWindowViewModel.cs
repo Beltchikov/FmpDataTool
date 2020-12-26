@@ -42,6 +42,7 @@ namespace FmpDataTool
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
         public RelayCommand CommandSaveToDatabase { get; set; }
+        public RelayCommand CommandGetFinancials { get; set; }
 
 
         private DispatcherTimer timer;
@@ -64,19 +65,19 @@ namespace FmpDataTool
             UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
 
-    }
+        }
 
-    /// <summary>
-    /// MainWindowViewModel
-    /// </summary>
-    public MainWindowViewModel()
+        /// <summary>
+        /// MainWindowViewModel
+        /// </summary>
+        public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
             ConnectionString = Configuration.Instance["ConnectionString"];
             BatchSize = Convert.ToInt32(Configuration.Instance["BatchSize"]);
             UrlIncome = Configuration.Instance["UrlIncome"];
-            UrlBalance= Configuration.Instance["UrlBalance"];
+            UrlBalance = Configuration.Instance["UrlBalance"];
             UrlCashFlow = Configuration.Instance["UrlCashFlow"];
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
@@ -85,6 +86,7 @@ namespace FmpDataTool
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
             CommandSaveToDatabase = new RelayCommand((p) => SaveToDatabase(p));
+            CommandGetFinancials = new RelayCommand((p) => GetFinancials(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -198,7 +200,7 @@ namespace FmpDataTool
             get { return (string)GetValue(LogFinancialsProperty); }
             set { SetValue(LogFinancialsProperty, value); }
         }
-        
+
         /// <summary>
         /// GetStockList
         /// </summary>
@@ -320,6 +322,14 @@ namespace FmpDataTool
             DataContext.Instance.SaveChanges();
             LogStocks += "\r\nOK! Saved to database.";
 
+        }
+
+        /// <summary>
+        /// GetFinancials
+        /// </summary>
+        /// <param name="p"></param>
+        private void GetFinancials(object p)
+        {
         }
     }
 }

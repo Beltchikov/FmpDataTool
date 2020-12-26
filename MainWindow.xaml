@@ -200,7 +200,8 @@
                         <Button x:Name="btGetFinancials"
                                 Grid.Column="4"
                                 Height="35"
-                                VerticalAlignment="Top">GET</Button>
+                                VerticalAlignment="Top"
+                                Command="{Binding CommandGetFinancials}">GET</Button>
                     </Grid>
                     <Grid Grid.Row="2" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
