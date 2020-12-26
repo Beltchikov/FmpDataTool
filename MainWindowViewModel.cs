@@ -26,7 +26,6 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlStockListProperty;
         public static readonly DependencyProperty ResultsStockListProperty;
         public static readonly DependencyProperty LogStocksProperty;
-        public static readonly DependencyProperty LogFinancialsProperty;
         public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
@@ -35,6 +34,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlIncomeProperty;
         public static readonly DependencyProperty UrlBalanceProperty;
         public static readonly DependencyProperty UrlCashFlowProperty;
+        public static readonly DependencyProperty LogFinancialsProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -54,7 +54,6 @@ namespace FmpDataTool
             UrlStockListProperty = DependencyProperty.Register("UrlStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
@@ -63,6 +62,7 @@ namespace FmpDataTool
             UrlIncomeProperty = DependencyProperty.Register("UrlIncome", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlBalanceProperty = DependencyProperty.Register("UrlBalance", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
 
     }
 
@@ -116,15 +116,6 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(LogStocksProperty); }
             set { SetValue(LogStocksProperty, value); }
-        }
-
-        /// <summary>
-        /// LogFinancials
-        /// </summary>
-        public string LogFinancials
-        {
-            get { return (string)GetValue(LogFinancialsProperty); }
-            set { SetValue(LogFinancialsProperty, value); }
         }
 
         /// <summary>
@@ -199,6 +190,15 @@ namespace FmpDataTool
             set { SetValue(UrlCashFlowProperty, value); }
         }
 
+        /// <summary>
+        /// LogFinancials
+        /// </summary>
+        public string LogFinancials
+        {
+            get { return (string)GetValue(LogFinancialsProperty); }
+            set { SetValue(LogFinancialsProperty, value); }
+        }
+        
         /// <summary>
         /// GetStockList
         /// </summary>
