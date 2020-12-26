@@ -44,6 +44,7 @@
                         <RowDefinition Height="35"></RowDefinition>
                         <RowDefinition Height="2"></RowDefinition>
                         <RowDefinition Height="26"></RowDefinition>
+                        <RowDefinition Height="26"></RowDefinition>
                         <RowDefinition Height="400"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="15"></RowDefinition>
@@ -113,6 +114,27 @@
                             <ColumnDefinition Width="40"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
                             <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="150"></ColumnDefinition>
+                           <ColumnDefinition Width="5"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="1" Grid.Column="1" >DB:</TextBlock>
+                        <TextBox x:Name="txtConnectionString" Grid.Column="2" Grid.Row="1"
+                                 Text="{Binding ConnectionString}"></TextBox>
+                        <Button x:Name="btnCreateDatabase" 
+                                Width="150" Grid.Column="4"
+                                Grid.Row="1"
+                                Command ="{Binding CommandCreateDatabase}">Create
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="40"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Result:</TextBlock>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
@@ -122,10 +144,10 @@
                     <ProgressBar x:Name="prgStockList"
                                 Maximum="750" Minimum="0" 
                                  Value="{Binding ProgressValue}"
-                                 Grid.Row="5"
+                                 Grid.Row="6"
                                  Margin="45,0,5,0">
                     </ProgressBar>
-                    <Grid Grid.Row="7">
+                    <Grid Grid.Row="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="40"></ColumnDefinition>

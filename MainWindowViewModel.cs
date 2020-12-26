@@ -26,14 +26,15 @@ namespace FmpDataTool
         public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
+        public static readonly DependencyProperty ConnectionStringProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
         public RelayCommand CommandSelectFile { get; set; }
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
-
-
+        public RelayCommand CommandCreateDatabase { get; set; }
+        
         private DispatcherTimer timer;
 
         /// <summary>
@@ -47,7 +48,8 @@ namespace FmpDataTool
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        }
+            ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+    }
 
         /// <summary>
         /// MainWindowViewModel
@@ -62,7 +64,8 @@ namespace FmpDataTool
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
-
+            CommandCreateDatabase = new RelayCommand((p) => throw new NotImplementedException());
+            
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 0, 0, 25);
@@ -120,6 +123,15 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(FileNameStockListProperty); }
             set { SetValue(FileNameStockListProperty, value); }
+        }
+
+        /// <summary>
+        /// ConnectionString
+        /// </summary>
+        public string ConnectionString
+        {
+            get { return (string)GetValue(ConnectionStringProperty); }
+            set { SetValue(ConnectionStringProperty, value); }
         }
 
         /// <summary>
