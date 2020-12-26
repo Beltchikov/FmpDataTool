@@ -32,7 +32,7 @@ namespace FmpDataTool
         public RelayCommand CommandSelectFile { get; set; }
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
-        
+
 
         private DispatcherTimer timer;
 
@@ -60,7 +60,7 @@ namespace FmpDataTool
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
-            CommandSaveInFile = new RelayCommand((p) => throw new NotImplementedException());
+            CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => throw new NotImplementedException());
 
             timer = new DispatcherTimer();
@@ -184,6 +184,22 @@ namespace FmpDataTool
             if ((bool)openFileDialog.ShowDialog())
             {
                 FileNameStockList = openFileDialog.FileName;
+            }
+        }
+
+        /// <summary>
+        /// SaveInFile
+        /// </summary>
+        /// <param name="p"></param>
+        private void SaveInFile(object p)
+        {
+            if (File.Exists(FileNameStockList))
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("The file exists allready. Do you want to overwrite it?", "Warning! File exists!", MessageBoxButton.YesNo);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                {
+                    File.WriteAllText(FileNameStockList, ResultsStockList);
+                }
             }
         }
     }
