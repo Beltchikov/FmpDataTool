@@ -36,7 +36,6 @@ namespace FmpDataTool
         public RelayCommand CommandSelectFile { get; set; }
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
-        public RelayCommand CommandCreateDatabase { get; set; }
 
         private DispatcherTimer timer;
 
@@ -68,7 +67,6 @@ namespace FmpDataTool
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
-            CommandCreateDatabase = new RelayCommand((p) => throw new NotImplementedException());
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
