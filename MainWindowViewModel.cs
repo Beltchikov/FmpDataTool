@@ -86,7 +86,7 @@ namespace FmpDataTool
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
             CommandSaveToDatabase = new RelayCommand((p) => SaveToDatabase(p));
-            CommandGetFinancials = new RelayCommand((p) => GetFinancials(p));
+            CommandGetFinancials = new RelayCommand((p) => GetFinancialsAsync(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -328,8 +328,37 @@ namespace FmpDataTool
         /// GetFinancials
         /// </summary>
         /// <param name="p"></param>
-        private void GetFinancials(object p)
+        private async Task GetFinancialsAsync(object p)
         {
+            LogFinancials = "Requesting financials data...";
+
+            int i = 0;
+            foreach(var symbol in StockList.Select(s=>s.Symbol).ToList())
+            {
+                if(i == 1)
+                {
+                    break;
+                }
+                
+                var url = UrlIncome.Replace("{SYMBOL}", symbol);
+                using var httpClient = new HttpClient();
+                await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
+
+                i++;
+            }
+
+            
+        }
+
+        /// <summary>
+        /// OnRequestIncomeCompleteAsync
+        /// </summary>
+        /// <param name="r"></param>
+        private async Task OnRequestIncomeCompleteAsync(Task<HttpResponseMessage> requestTask)
+        {
+            var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
+            IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
+            //Dispatcher.Invoke(() => SetDataStockList(stockList));
         }
     }
 }
