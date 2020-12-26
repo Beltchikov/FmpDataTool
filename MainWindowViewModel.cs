@@ -25,7 +25,8 @@ namespace FmpDataTool
     {
         public static readonly DependencyProperty UrlStockListProperty;
         public static readonly DependencyProperty ResultsStockListProperty;
-        public static readonly DependencyProperty LogProperty;
+        public static readonly DependencyProperty LogStocksProperty;
+        public static readonly DependencyProperty LogFinancialsProperty;
         public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
@@ -47,8 +48,9 @@ namespace FmpDataTool
         {
             UrlStockListProperty = DependencyProperty.Register("UrlStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            LogProperty = DependencyProperty.Register("Log", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
+            LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+        StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
@@ -94,12 +96,21 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// Log
+        /// LogStocks
         /// </summary>
-        public string Log
+        public string LogStocks
         {
-            get { return (string)GetValue(LogProperty); }
-            set { SetValue(LogProperty, value); }
+            get { return (string)GetValue(LogStocksProperty); }
+            set { SetValue(LogStocksProperty, value); }
+        }
+
+        /// <summary>
+        /// LogFinancials
+        /// </summary>
+        public string LogFinancials
+        {
+            get { return (string)GetValue(LogFinancialsProperty); }
+            set { SetValue(LogFinancialsProperty, value); }
         }
 
         /// <summary>
@@ -147,7 +158,7 @@ namespace FmpDataTool
         {
             Array.Clear(StockList, 0, StockList.Length);
             ResultsStockList = string.Empty;
-            Log = "Requesting stock list...";
+            LogStocks = "Requesting stock list...";
             timer.Start();
 
             using var httpClient = new HttpClient();
@@ -175,7 +186,7 @@ namespace FmpDataTool
             StockList = stockList;
             ResultsStockList = JsonSerializer.Serialize(StockList);
             timer.Stop();
-            Log += "\r\nOK! stock list recieved.";
+            LogStocks += "\r\nOK! stock list recieved.";
             ProgressValue = 0;
         }
 
@@ -254,10 +265,10 @@ namespace FmpDataTool
                 }
             }
 
-            Log += "Saving to database...";
+            LogStocks += "Saving to database...";
             DataContext.Instance.Stocks.AddRange(StockList);
             DataContext.Instance.SaveChanges();
-            Log += "\r\nOK! Saved to database.";
+            LogStocks += "\r\nOK! Saved to database.";
 
         }
     }
