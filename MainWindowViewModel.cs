@@ -30,6 +30,9 @@ namespace FmpDataTool
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
         public RelayCommand CommandSelectFile { get; set; }
+        public RelayCommand CommandSaveInFile { get; set; }
+        public RelayCommand CommandLoadFromFile { get; set; }
+        
 
         private DispatcherTimer timer;
 
@@ -57,6 +60,8 @@ namespace FmpDataTool
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
+            CommandSaveInFile = new RelayCommand((p) => throw new NotImplementedException());
+            CommandLoadFromFile = new RelayCommand((p) => throw new NotImplementedException());
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
