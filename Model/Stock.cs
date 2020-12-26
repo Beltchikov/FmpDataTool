@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace FmpDataTool.Model
 {
@@ -7,6 +8,7 @@ namespace FmpDataTool.Model
     /// </summary>
     public class Stock
     {
+        [Key]
         [JsonPropertyName("symbol")]
         public string Symbol { get; set; }
 

@@ -12,6 +12,9 @@ using FmpDataTool.Model;
 using System.Linq;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace FmpDataTool
 {
@@ -34,7 +37,7 @@ namespace FmpDataTool
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
         public RelayCommand CommandCreateDatabase { get; set; }
-        
+
         private DispatcherTimer timer;
 
         /// <summary>
@@ -49,15 +52,16 @@ namespace FmpDataTool
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-    }
+        }
 
         /// <summary>
         /// MainWindowViewModel
         /// </summary>
         public MainWindowViewModel()
         {
-            UrlStockList = "https://financialmodelingprep.com/api/v3/stock/list?apikey=14e7a22ed6110f130afa41af05599bb6";
-            FileNameStockList = @"C:\Users\Jogger\Google Drive\Wirtschaft\Trading\Aktien\stocklist.json";
+            UrlStockList = Configuration.Instance["UrlStockList"];
+            FileNameStockList = Configuration.Instance["FileNameStockList"];
+            ConnectionString = Configuration.Instance["ConnectionString"];
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -65,7 +69,7 @@ namespace FmpDataTool
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
             CommandCreateDatabase = new RelayCommand((p) => throw new NotImplementedException());
-            
+
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 0, 0, 25);

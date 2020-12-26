@@ -6,10 +6,19 @@ using System.Text;
 
 namespace FmpDataTool
 {
+    /// <summary>
+    /// DataContext
+    /// </summary>
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions<DataContext> option) : base(option)
+        /// <summary>
+        /// OnConfiguring
+        /// </summary>
+        /// <param name="optionsBuilder"></param>
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.UseSqlServer(Configuration.Instance["ConnectionString"]);
+            base.OnConfiguring(optionsBuilder);
         }
 
         public DbSet<Stock> Stocks { get; set; }
