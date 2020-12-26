@@ -36,6 +36,7 @@ namespace FmpDataTool
         public RelayCommand CommandSelectFile { get; set; }
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
+        public RelayCommand CommandSaveToDatabase { get; set; }
 
         private DispatcherTimer timer;
 
@@ -67,6 +68,7 @@ namespace FmpDataTool
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
+            CommandSaveToDatabase = new RelayCommand((p) => SaveToDatabase(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -230,6 +232,15 @@ namespace FmpDataTool
             }
 
             ResultsStockList = File.ReadAllText(FileNameStockList);
+        }
+
+        /// <summary>
+        /// SaveToDatabase
+        /// </summary>
+        /// <param name="p"></param>
+        private void SaveToDatabase(object p)
+        {
+            
         }
     }
 }
