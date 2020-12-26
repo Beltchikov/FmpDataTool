@@ -61,7 +61,7 @@ namespace FmpDataTool
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
             CommandSelectFile = new RelayCommand((p) => SelectFile(p));
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
-            CommandLoadFromFile = new RelayCommand((p) => throw new NotImplementedException());
+            CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -201,6 +201,21 @@ namespace FmpDataTool
                     File.WriteAllText(FileNameStockList, ResultsStockList);
                 }
             }
+        }
+
+        /// <summary>
+        /// LoadFromFile
+        /// </summary>
+        /// <param name="p"></param>
+        private void LoadFromFile(object p)
+        {
+            if (!File.Exists(FileNameStockList))
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("The file doesn't exist. Selct another one.", "Warning! File doesn't exist!", MessageBoxButton.OK);
+                return;
+            }
+
+            ResultsStockList = File.ReadAllText(FileNameStockList);
         }
     }
 }
