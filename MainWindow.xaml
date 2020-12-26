@@ -187,7 +187,9 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="10"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="150"></ColumnDefinition>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1" Grid.Row="1">Stocks:</TextBlock>
                         <ScrollViewer VerticalScrollBarVisibility="Auto"  
@@ -195,6 +197,10 @@
                             <TextBox x:Name="txtStocks" 
                                      Text="{Binding ResultsStockList}"/>
                         </ScrollViewer>
+                        <Button x:Name="btGetFinancials"
+                                Grid.Column="4"
+                                Height="35"
+                                VerticalAlignment="Top">GET</Button>
                     </Grid>
                     <Grid Grid.Row="2" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
@@ -219,9 +225,7 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
-                            <ColumnDefinition Width="150"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
@@ -237,9 +241,7 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
-                            <ColumnDefinition Width="150"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
@@ -255,9 +257,7 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
-                            <ColumnDefinition Width="150"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
@@ -273,9 +273,7 @@
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
-                            <ColumnDefinition Width="150"></ColumnDefinition>
-                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
