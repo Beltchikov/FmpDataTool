@@ -232,6 +232,7 @@ namespace FmpDataTool
             }
 
             ResultsStockList = File.ReadAllText(FileNameStockList);
+            StockList = JsonSerializer.Deserialize<Stock[]>(ResultsStockList);
         }
 
         /// <summary>
@@ -240,7 +241,10 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private void SaveToDatabase(object p)
         {
-            
+            Log += "Saving to database...";
+            DataContext.Instance.Stocks.AddRange(StockList);
+            DataContext.Instance.SaveChanges();
+            Log += "\r\nOK! Saved to database.";
         }
     }
 }

@@ -9,16 +9,22 @@ namespace FmpDataTool
     public class Configuration
     {
         private static IConfiguration _configuration;
+        private static readonly object lockObject = new object();
+
+        Configuration(){}
 
         public static IConfiguration Instance
         {
             get
             {
-                if (_configuration == null)
+                lock (lockObject)
                 {
-                    _configuration = new ConfigurationBuilder().AddJsonFile("appSettings.json").Build();
+                    if (_configuration == null)
+                    {
+                        _configuration = new ConfigurationBuilder().AddJsonFile("appSettings.json").Build();
+                    }
+                    return _configuration;
                 }
-                return _configuration;
             }
         }
     }

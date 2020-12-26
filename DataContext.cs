@@ -11,6 +11,26 @@ namespace FmpDataTool
     /// </summary>
     public class DataContext : DbContext
     {
+        private static DataContext _dataContext;
+        private static readonly object lockObject = new object();
+
+        internal DataContext(){}
+
+        public static DataContext Instance
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    if (_dataContext == null)
+                    {
+                        _dataContext = new DataContext();
+                    }
+                    return _dataContext;
+                }
+            }
+        }
+
         /// <summary>
         /// OnConfiguring
         /// </summary>
