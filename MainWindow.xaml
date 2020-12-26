@@ -217,7 +217,7 @@
                                    Margin="0,10,0,0">Batch Size:</TextBlock>
                         <TextBox x:Name="txtBatchSize" 
                                  Grid.Column="2"
-                                     Text="TODO"
+                                     Text="{Binding BatchSize}"
                                  Margin="0,10,0,0"/>
                     </Grid>
                     <Grid Grid.Row="3" Grid.ColumnSpan="2">
@@ -233,7 +233,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Margin="0,10,0,0">URL Income Statement:</TextBlock>
                         <TextBox x:Name="txtUrlIncome" Grid.Column="2" Grid.Row="1"
-                                 Text="TODO"
+                                 Text="{Binding UrlIncome}"
                                  Margin="0,10,0,0"></TextBox>
                     </Grid>
                     <Grid Grid.Row="4" Grid.ColumnSpan="2">
@@ -249,7 +249,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Margin="0,10,0,0">URL Balance Sheet:</TextBlock>
                         <TextBox x:Name="txtUrlBalance" Grid.Column="2" Grid.Row="1"
-                                 Text="TODO"
+                                 Text="{Binding UrlBalance}"
                                  Margin="0,10,0,0"></TextBox>
                     </Grid>
                     <Grid Grid.Row="5" Grid.ColumnSpan="2">
@@ -265,7 +265,7 @@
                         <TextBlock Grid.Row="1" Grid.Column="1"
                                    Margin="0,10,0,0">URL Cash Flow Statement:</TextBlock>
                         <TextBox x:Name="txtUrlCashFlow" Grid.Column="2" Grid.Row="1"
-                                 Text="TODO"
+                                 Text="{Binding UrlCashFlow}"
                                  Margin="0,10,0,0"></TextBox>
                     </Grid>
                     <Grid Grid.Row="6" Grid.ColumnSpan="2">

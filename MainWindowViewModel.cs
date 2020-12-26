@@ -31,6 +31,10 @@ namespace FmpDataTool
         public static readonly DependencyProperty ProgressValueProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
         public static readonly DependencyProperty ConnectionStringProperty;
+        public static readonly DependencyProperty BatchSizeProperty;
+        public static readonly DependencyProperty UrlIncomeProperty;
+        public static readonly DependencyProperty UrlBalanceProperty;
+        public static readonly DependencyProperty UrlCashFlowProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -38,6 +42,7 @@ namespace FmpDataTool
         public RelayCommand CommandSaveInFile { get; set; }
         public RelayCommand CommandLoadFromFile { get; set; }
         public RelayCommand CommandSaveToDatabase { get; set; }
+
 
         private DispatcherTimer timer;
 
@@ -50,20 +55,29 @@ namespace FmpDataTool
             ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
+            StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        }
+            BatchSizeProperty = DependencyProperty.Register("BatchSize", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            UrlIncomeProperty = DependencyProperty.Register("UrlIncome", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            UrlBalanceProperty = DependencyProperty.Register("UrlBalance", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
 
-        /// <summary>
-        /// MainWindowViewModel
-        /// </summary>
-        public MainWindowViewModel()
+    }
+
+    /// <summary>
+    /// MainWindowViewModel
+    /// </summary>
+    public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
             ConnectionString = Configuration.Instance["ConnectionString"];
+            BatchSize = Convert.ToInt32(Configuration.Instance["BatchSize"]);
+            UrlIncome = Configuration.Instance["UrlIncome"];
+            UrlBalance= Configuration.Instance["UrlBalance"];
+            UrlCashFlow = Configuration.Instance["UrlCashFlow"];
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -147,6 +161,42 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(ConnectionStringProperty); }
             set { SetValue(ConnectionStringProperty, value); }
+        }
+
+        /// <summary>
+        /// BatchSize
+        /// </summary>
+        public int BatchSize
+        {
+            get { return (int)GetValue(BatchSizeProperty); }
+            set { SetValue(BatchSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// UrlIncome
+        /// </summary>
+        public string UrlIncome
+        {
+            get { return (string)GetValue(UrlIncomeProperty); }
+            set { SetValue(UrlIncomeProperty, value); }
+        }
+
+        /// <summary>
+        /// UrlBalance
+        /// </summary>
+        public string UrlBalance
+        {
+            get { return (string)GetValue(UrlBalanceProperty); }
+            set { SetValue(UrlBalanceProperty, value); }
+        }
+
+        /// <summary>
+        /// UrlCashFlow
+        /// </summary>
+        public string UrlCashFlow
+        {
+            get { return (string)GetValue(UrlCashFlowProperty); }
+            set { SetValue(UrlCashFlowProperty, value); }
         }
 
         /// <summary>
