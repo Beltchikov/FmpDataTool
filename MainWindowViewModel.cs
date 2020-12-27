@@ -24,7 +24,7 @@ namespace FmpDataTool
     public class MainWindowViewModel : DependencyObject
     {
         public static readonly DependencyProperty UrlStockListProperty;
-        public static readonly DependencyProperty ResultsStockListProperty;
+        public static readonly DependencyProperty StockListAsTextProperty;
         public static readonly DependencyProperty LogStocksProperty;
         public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueProperty;
@@ -35,6 +35,8 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlBalanceProperty;
         public static readonly DependencyProperty UrlCashFlowProperty;
         public static readonly DependencyProperty LogFinancialsProperty;
+        public static readonly DependencyProperty SymbolListProperty;
+        public static readonly DependencyProperty SymbolListAsTextProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -53,7 +55,7 @@ namespace FmpDataTool
         static MainWindowViewModel()
         {
             UrlStockListProperty = DependencyProperty.Register("UrlStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            ResultsStockListProperty = DependencyProperty.Register("ResultsStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            StockListAsTextProperty = DependencyProperty.Register("StockListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
@@ -64,13 +66,15 @@ namespace FmpDataTool
             UrlBalanceProperty = DependencyProperty.Register("UrlBalance", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
+            SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
 
-        }
+    }
 
-        /// <summary>
-        /// MainWindowViewModel
-        /// </summary>
-        public MainWindowViewModel()
+    /// <summary>
+    /// MainWindowViewModel
+    /// </summary>
+    public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
@@ -86,7 +90,7 @@ namespace FmpDataTool
             CommandSaveInFile = new RelayCommand((p) => SaveInFile(p));
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
             CommandSaveToDatabase = new RelayCommand((p) => SaveToDatabase(p));
-            CommandGetFinancials = new RelayCommand((p) => GetFinancialsAsync(p));
+            CommandGetFinancials = new RelayCommand(async (p) => await GetFinancialsAsync(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -103,12 +107,12 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// ResultsStockList
+        /// StockListAsText
         /// </summary>
-        public string ResultsStockList
+        public string StockListAsText
         {
-            get { return (string)GetValue(ResultsStockListProperty); }
-            set { SetValue(ResultsStockListProperty, value); }
+            get { return (string)GetValue(StockListAsTextProperty); }
+            set { SetValue(StockListAsTextProperty, value); }
         }
 
         /// <summary>
@@ -127,6 +131,15 @@ namespace FmpDataTool
         {
             get { return (Stock[])GetValue(StockListProperty); }
             set { SetValue(StockListProperty, value); }
+        }
+
+        /// <summary>
+        /// SymbolList
+        /// </summary>
+        public string[] SymbolList
+        {
+            get { return (string[])GetValue(SymbolListProperty); }
+            set { SetValue(SymbolListProperty, value); }
         }
 
         /// <summary>
@@ -202,6 +215,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// SymbolListAsText
+        /// </summary>
+        public string SymbolListAsText
+        {
+            get { return (string)GetValue(SymbolListAsTextProperty); }
+            set { SetValue(SymbolListAsTextProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -209,7 +231,10 @@ namespace FmpDataTool
         private async Task GetStockList(object param)
         {
             Array.Clear(StockList, 0, StockList.Length);
-            ResultsStockList = string.Empty;
+            Array.Clear(SymbolList, 0, SymbolList.Length);
+            StockListAsText = string.Empty;
+            SymbolListAsText = string.Empty;
+
             LogStocks = "Requesting stock list...";
             timer.Start();
 
@@ -236,7 +261,10 @@ namespace FmpDataTool
         private void SetDataStockList(Stock[] stockList)
         {
             StockList = stockList;
-            ResultsStockList = JsonSerializer.Serialize(StockList);
+            SymbolList = stockList.Select(s => s.Symbol).OrderBy(u => u).ToArray<string>();
+            StockListAsText = JsonSerializer.Serialize(StockList);
+            SymbolListAsText = SymbolList.Aggregate((r, n) => r + Environment.NewLine + n);
+
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
             ProgressValue = 0;
@@ -277,7 +305,7 @@ namespace FmpDataTool
                 MessageBoxResult messageBoxResult = MessageBox.Show("The file exists already. Do you want to overwrite it?", "Warning! File exists!", MessageBoxButton.YesNo);
                 if (messageBoxResult == MessageBoxResult.Yes)
                 {
-                    File.WriteAllText(FileNameStockList, ResultsStockList);
+                    File.WriteAllText(FileNameStockList, StockListAsText);
                 }
             }
         }
@@ -294,8 +322,10 @@ namespace FmpDataTool
                 return;
             }
 
-            ResultsStockList = File.ReadAllText(FileNameStockList);
-            StockList = JsonSerializer.Deserialize<Stock[]>(ResultsStockList);
+            StockListAsText = File.ReadAllText(FileNameStockList);
+            StockList = JsonSerializer.Deserialize<Stock[]>(StockListAsText);
+            SymbolList = StockList.Select(s => s.Symbol).OrderBy(u => u).ToArray<string>();
+            SymbolListAsText = SymbolList.Aggregate((r, n) => r + Environment.NewLine + n);
         }
 
         /// <summary>

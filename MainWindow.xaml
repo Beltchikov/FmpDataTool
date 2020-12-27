@@ -138,7 +138,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Result:</TextBlock>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
-                            <TextBox x:Name="txtResult" Text="{Binding ResultsStockList}"/>
+                            <TextBox x:Name="txtResult" Text="{Binding StockListAsText}"/>
                         </ScrollViewer>
                     </Grid>
                     <ProgressBar x:Name="prgStockList"
@@ -195,7 +195,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto"  
                                       Grid.Column="2">
                             <TextBox x:Name="txtStocks" 
-                                     Text="{Binding ResultsStockList}"/>
+                                     Text="{Binding SymbolListAsText}"/>
                         </ScrollViewer>
                         <Button x:Name="btGetFinancials"
                                 Grid.Column="4"
