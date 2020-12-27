@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FmpDataTool.Model
 {
-    public class DataTranfer
+    public class DataTransfer
     {
         [Key]
         public Guid Id { get; set; }

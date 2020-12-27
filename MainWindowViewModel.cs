@@ -360,10 +360,10 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            LogFinancials = "Requesting financials data...";
+            LogTransferStart();
 
             int i = 0;
-            foreach(var symbol in StockList.Select(s=>s.Symbol).ToList())
+            foreach(var symbol in SymbolList.ToList())
             {
                 if(i == 1)
                 {
@@ -389,6 +389,13 @@ namespace FmpDataTool
             var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
             IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
             //Dispatcher.Invoke(() => SetDataStockList(stockList));
+        }
+
+        private void LogTransferStart()
+        {
+            LogFinancials = "Requesting financials data...";
+            //DataContext.Instance.
+            //DataContext.Instance.SaveChanges();
         }
     }
 }
