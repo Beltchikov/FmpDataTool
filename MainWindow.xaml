@@ -145,7 +145,7 @@
                     </Grid>
                     <ProgressBar x:Name="prgStockList"
                                 Maximum="750" Minimum="0" 
-                                 Value="{Binding ProgressValue}"
+                                 Value="{Binding ProgressValueStocks}"
                                  Grid.Row="6"
                                  Margin="45,0,5,0" Grid.ColumnSpan="2">
                     </ProgressBar>

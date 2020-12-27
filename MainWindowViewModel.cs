@@ -27,7 +27,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty StockListAsTextProperty;
         public static readonly DependencyProperty LogStocksProperty;
         public static readonly DependencyProperty StockListProperty;
-        public static readonly DependencyProperty ProgressValueProperty;
+        public static readonly DependencyProperty ProgressValueStocksProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
         public static readonly DependencyProperty ConnectionStringProperty;
         public static readonly DependencyProperty BatchSizeProperty;
@@ -58,7 +58,7 @@ namespace FmpDataTool
             StockListAsTextProperty = DependencyProperty.Register("StockListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
-            ProgressValueProperty = DependencyProperty.Register("ProgressValue", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressValueStocksProperty = DependencyProperty.Register("ProgressValueStocks", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             BatchSizeProperty = DependencyProperty.Register("BatchSize", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
@@ -143,12 +143,12 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// ProgressValue
+        /// ProgressValueStocks
         /// </summary>
-        public int ProgressValue
+        public int ProgressValueStocks
         {
-            get { return (int)GetValue(ProgressValueProperty); }
-            set { SetValue(ProgressValueProperty, value); }
+            get { return (int)GetValue(ProgressValueStocksProperty); }
+            set { SetValue(ProgressValueStocksProperty, value); }
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace FmpDataTool
 
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
-            ProgressValue = 0;
+            ProgressValueStocks = 0;
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace FmpDataTool
         /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
-            ProgressValue++;
+            ProgressValueStocks++;
         }
 
         /// <summary>
