@@ -37,10 +37,10 @@ namespace FmpDataTool
         public static readonly DependencyProperty LogFinancialsProperty;
         public static readonly DependencyProperty SymbolListProperty;
         public static readonly DependencyProperty SymbolListAsTextProperty;
-        public static readonly DependencyProperty ProgressValueFinancialsProperty;
-        public static readonly DependencyProperty ProgressMaxFinancialsProperty;
         public static readonly DependencyProperty ProgressValueBatchesProperty;
         public static readonly DependencyProperty ProgressMaxBatchesProperty;
+        public static readonly DependencyProperty ProgressValueSymbolsProperty;
+        public static readonly DependencyProperty ProgressMaxSymbolsProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -72,10 +72,10 @@ namespace FmpDataTool
             LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
             SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            ProgressValueFinancialsProperty = DependencyProperty.Register("ProgressValueFinancials", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
-            ProgressMaxFinancialsProperty = DependencyProperty.Register("ProgressMaxFinancials", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressValueBatchesProperty = DependencyProperty.Register("ProgressValueBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressMaxBatchesProperty = DependencyProperty.Register("ProgressMaxBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressValueSymbolsProperty = DependencyProperty.Register("ProgressValueSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressMaxSymbolsProperty = DependencyProperty.Register("ProgressMaxSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
         }
 
         /// <summary>
@@ -236,24 +236,6 @@ namespace FmpDataTool
         public bool ResponsePending { get; set; }
 
         /// <summary>
-        /// ProgressValueFinancials
-        /// </summary>
-        public int ProgressValueFinancials
-        {
-            get { return (int)GetValue(ProgressValueFinancialsProperty); }
-            set { SetValue(ProgressValueFinancialsProperty, value); }
-        }
-
-        /// <summary>
-        /// ProgressMaxFinancials
-        /// </summary>
-        public int ProgressMaxFinancials
-        {
-            get { return (int)GetValue(ProgressMaxFinancialsProperty); }
-            set { SetValue(ProgressMaxFinancialsProperty, value); }
-        }
-
-        /// <summary>
         /// ProgressValueBatches
         /// </summary>
         public int ProgressValueBatches
@@ -270,6 +252,29 @@ namespace FmpDataTool
             get { return (int)GetValue(ProgressMaxBatchesProperty); }
             set { SetValue(ProgressMaxBatchesProperty, value); }
         }
+
+        /// <summary>
+        /// ProgressValueSymbols
+        /// </summary>
+        public int ProgressValueSymbols
+        {
+            get { return (int)GetValue(ProgressValueSymbolsProperty); }
+            set { SetValue(ProgressValueSymbolsProperty, value); }
+        }
+
+        /// <summary>
+        /// ProgressMaxSymbols
+        /// </summary>
+        public int ProgressMaxSymbols
+        {
+            get { return (int)GetValue(ProgressMaxSymbolsProperty); }
+            set { SetValue(ProgressMaxSymbolsProperty, value); }
+        }
+
+        /// <summary>
+        /// FirstBatchFirstSymbol
+        /// </summary>
+        public bool FirstBatchFirstSymbol { get; private set; }
 
         /// <summary>
         /// GetStockList
@@ -408,25 +413,26 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            if(!CheckDatabaseNotEmpty())
+            if (!CheckDatabaseNotEmpty())
             {
                 return;
             }
-            
+
             // Prepare batch calculation
             SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             int batchQuantity = SymbolList.Count() % BatchSize == 0
                 ? SymbolList.Count() / BatchSize
                 : SymbolList.Count() / BatchSize + 1;
-            ProgressMaxFinancials = batchQuantity;
-            ProgressMaxBatches = BatchSize;
+            ProgressMaxBatches = batchQuantity;
+            ProgressMaxSymbols = BatchSize;
+            FirstBatchFirstSymbol = true;
 
             // For every batch
             var dataTransferId = LogTransferStart(DateTime.Now);
             Guid batchId = Guid.Empty;
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
-                ProgressValueFinancials= batchNr;
+                ProgressValueBatches = batchNr;
 
                 List<string> batch;
                 if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
@@ -452,7 +458,7 @@ namespace FmpDataTool
         /// <returns></returns>
         private bool CheckDatabaseNotEmpty()
         {
-            if(DataContext.Instance.IncomeStatements.Any())
+            if (DataContext.Instance.IncomeStatements.Any())
             {
                 MessageBoxResult messageBoxResult = MessageBox.Show("The table 'IncomeStatement' is not empty. Do you want to overwrite it?", "Warning! Database not empty!", MessageBoxButton.YesNo);
                 if (messageBoxResult == MessageBoxResult.Yes)
@@ -473,9 +479,10 @@ namespace FmpDataTool
         private async Task ProcessBatchAsync(List<string> batch)
         {
             var symbolBefore = string.Empty;
+            ProgressValueSymbols = 0;
             foreach (string symbol in batch)
             {
-                ProgressValueBatches++;
+                ProgressValueSymbols++;
                 while (ResponsePending)
                 { }
 
@@ -509,15 +516,22 @@ namespace FmpDataTool
                 IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
                 lock (lockObject)
                 {
-                    DataContext.Instance.IncomeStatements.RemoveRange(DataContext.Instance.IncomeStatements);
+                    if (FirstBatchFirstSymbol)
+                    {
+                        DataContext.Instance.IncomeStatements.RemoveRange(DataContext.Instance.IncomeStatements);
+                    }
                     DataContext.Instance.IncomeStatements.AddRange(incomeStatements);
                     DataContext.Instance.SaveChanges();
-                    Dispatcher.Invoke(() => ResponsePending = false);
+                    Dispatcher.Invoke(() => {
+                        ResponsePending = false;
+                        FirstBatchFirstSymbol = false;
+                    });
                 }
             }
             catch (Exception ex)
             {
                 LogFinancials += ex.ToString();
+                throw ex;
             }
         }
 
