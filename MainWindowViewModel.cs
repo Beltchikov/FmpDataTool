@@ -224,6 +224,11 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// ResponsePending
+        /// </summary>
+        public bool ResponsePending { get; set; }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -362,19 +367,18 @@ namespace FmpDataTool
         {
             var dataTransferId = LogTransferStart(DateTime.Now);
 
-            // Test
-            BatchSize = 3;
-
+            // Prepare batch calculation
             SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             int batchQuantity = SymbolList.Count() % BatchSize == 0
                 ? SymbolList.Count() / BatchSize
                 : SymbolList.Count() / BatchSize + 1;
 
+            // For every batch
             Guid batchId = Guid.Empty;
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
                 List<string> batch;
-                if(SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
+                if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
                 {
                     batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
                 }
@@ -382,32 +386,39 @@ namespace FmpDataTool
                 {
                     continue;
                 }
-                
+
                 if (batchNr > 1)
                 {
                     LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
                 }
                 batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
-            }
+
+                // For every symbol
+                var symbolBefore = string.Empty;
+                foreach (string symbol in batch)
+                {
+                    while (ResponsePending)
+                    { }
+
+                    if (!String.IsNullOrWhiteSpace(symbolBefore))
+                    {
+                        LogSymbolEnd(symbol);
+                    }
+                    LogSymbolStart(symbol);
+
+                    // Send HTTP Request
+                    ResponsePending = true;
+                    var url = UrlIncome.Replace("{SYMBOL}", symbol);
+                    using var httpClient = new HttpClient();
+                    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
+
+
+                    symbolBefore = symbol;
+                }
+            } // End for every batch
 
             LogBatchEnd(batchId, DateTime.Now, batchQuantity);
             LogTransferEnd(dataTransferId, DateTime.Now);
-
-            //int i = 0;
-            //foreach (var symbol in SymbolList.ToList())
-            //{
-            //    if (i == 1)
-            //    {
-            //        break;
-            //    }
-
-            //    var url = UrlIncome.Replace("{SYMBOL}", symbol);
-            //    using var httpClient = new HttpClient();
-            //    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
-
-            //    i++;
-            //}
-
 
         }
 
@@ -417,9 +428,22 @@ namespace FmpDataTool
         /// <param name="r"></param>
         private async Task OnRequestIncomeCompleteAsync(Task<HttpResponseMessage> requestTask)
         {
-            var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
-            IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
-            //Dispatcher.Invoke(() => SetDataStockList(stockList));
+            object lockObject = new object();
+
+            try
+            {
+                var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
+                IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
+                lock (lockObject)
+                {
+                    Dispatcher.Invoke(() => ResponsePending = false);
+                }
+            }
+            catch (Exception ex)
+            {
+
+                LogFinancials += ex.ToString();
+            }
         }
 
         /// <summary>
@@ -492,6 +516,24 @@ namespace FmpDataTool
             LogFinancials += $"\r\nOK! Data transfer {dataTransferId} completed successfully";
             DataContext.Instance.DataTransfer.First(b => b.Id == dataTransferId).End = now;
             DataContext.Instance.SaveChanges();
+        }
+
+        /// <summary>
+        /// LogSymbolStart
+        /// </summary>
+        /// <param name="symbol"></param>
+        private void LogSymbolStart(string symbol)
+        {
+            LogFinancials += $"\r\nProcessing  {symbol} ...";
+        }
+
+        /// <summary>
+        /// LogSymbolEnd
+        /// </summary>
+        /// <param name="symbol"></param>
+        private void LogSymbolEnd(string symbol)
+        {
+            LogFinancials += $"\r\nOK! {symbol} has been processed successfully.";
         }
     }
 }

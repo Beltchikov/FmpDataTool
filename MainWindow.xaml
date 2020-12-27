@@ -307,8 +307,10 @@
                             <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Log:</TextBlock>
-                        <TextBox x:Name="txtLogFinancials" Grid.Column="2" 
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
+                            <TextBox x:Name="txtLogFinancials"  
                                  Text="{Binding LogFinancials}"/>
+                        </ScrollViewer>
                     </Grid>
                 </Grid>
             </TabItem>
