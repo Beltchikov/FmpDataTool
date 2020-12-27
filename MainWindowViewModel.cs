@@ -436,6 +436,8 @@ namespace FmpDataTool
                 IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
                 lock (lockObject)
                 {
+                    DataContext.Instance.IncomeStatements.AddRange(incomeStatements);
+                    DataContext.Instance.SaveChanges();
                     Dispatcher.Invoke(() => ResponsePending = false);
                 }
             }
