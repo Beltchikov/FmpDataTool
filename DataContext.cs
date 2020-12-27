@@ -48,11 +48,15 @@ namespace FmpDataTool
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<IncomeStatement>().HasKey(p => new { p.Symbol, p.Date });
+            modelBuilder.Entity<BalanceSheet>().HasKey(p => new { p.Symbol, p.Date });
+            modelBuilder.Entity<CashFlowStatement>().HasKey(p => new { p.Symbol, p.Date });
         }
 
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<DataTransfer> DataTransfer { get; set; }
         public DbSet<Batch> Batches { get; set; }
         public DbSet<IncomeStatement> IncomeStatements { get; set; }
+        public DbSet<BalanceSheet> BalanceSheets { get; set; }
+        public DbSet<CashFlowStatement> CashFlowStatements { get; set; }
     }
 }
