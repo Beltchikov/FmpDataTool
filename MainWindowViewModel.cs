@@ -381,45 +381,47 @@ namespace FmpDataTool
                 if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
                 {
                     batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (batchNr > 1)
-                {
-                    LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
-                }
-                batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
-
-                // For every symbol
-                var symbolBefore = string.Empty;
-                foreach (string symbol in batch)
-                {
-                    while (ResponsePending)
-                    { }
-
-                    if (!String.IsNullOrWhiteSpace(symbolBefore))
+                    if (batchNr > 1)
                     {
-                        LogSymbolEnd(symbol);
+                        LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
                     }
-                    LogSymbolStart(symbol);
+                    batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
 
-                    // Send HTTP Request
-                    ResponsePending = true;
-                    var url = UrlIncome.Replace("{SYMBOL}", symbol);
-                    using var httpClient = new HttpClient();
-                    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
-
-
-                    symbolBefore = symbol;
+                    await ProcessBatchAsync(batch);
                 }
-            } // End for every batch
+            }
 
             LogBatchEnd(batchId, DateTime.Now, batchQuantity);
             LogTransferEnd(dataTransferId, DateTime.Now);
+        }
 
+        /// <summary>
+        /// ProcessBatchAsync
+        /// </summary>
+        /// <param name="batch"></param>
+        /// <returns></returns>
+        private async Task ProcessBatchAsync(List<string> batch)
+        {
+            var symbolBefore = string.Empty;
+            foreach (string symbol in batch)
+            {
+                while (ResponsePending)
+                { }
+
+                if (!String.IsNullOrWhiteSpace(symbolBefore))
+                {
+                    LogSymbolEnd(symbol);
+                }
+                LogSymbolStart(symbol);
+
+                // Send HTTP Request
+                ResponsePending = true;
+                var url = UrlIncome.Replace("{SYMBOL}", symbol);
+                using var httpClient = new HttpClient();
+                await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
+
+                symbolBefore = symbol;
+            }
         }
 
         /// <summary>
