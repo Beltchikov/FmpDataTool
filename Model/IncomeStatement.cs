@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -7,9 +9,11 @@ namespace FmpDataTool.Model
 {
     public class IncomeStatement
     {
+        [Key, Column(Order = 1)]
         [JsonPropertyName("date")]
         public string Date { get; set; }
 
+        [Key, Column(Order = 0)]
         [JsonPropertyName("symbol")]
         public string Symbol { get; set; }
 

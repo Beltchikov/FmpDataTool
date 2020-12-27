@@ -39,8 +39,20 @@ namespace FmpDataTool
             base.OnConfiguring(optionsBuilder);
         }
 
+        /// <summary>
+        /// OnModelCreating
+        /// </summary>
+        /// <param name="modelBuilder"></param>
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IncomeStatement>().HasKey(p => new { p.Symbol, p.Date });
+        }
+
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<DataTransfer> DataTransfer { get; set; }
         public DbSet<Batch> Batches { get; set; }
+        public DbSet<IncomeStatement> IncomeStatements { get; set; }
     }
 }
