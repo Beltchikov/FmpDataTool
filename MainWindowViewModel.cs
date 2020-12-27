@@ -362,6 +362,10 @@ namespace FmpDataTool
         {
             var dataTransferId = LogTransferStart(DateTime.Now);
 
+            // Test
+            BatchSize = 3;
+
+            SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             int batchQuantity = SymbolList.Count() % BatchSize == 0
                 ? SymbolList.Count() / BatchSize
                 : SymbolList.Count() / BatchSize + 1;
@@ -369,13 +373,25 @@ namespace FmpDataTool
             Guid batchId = Guid.Empty;
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
-                var batch = SymbolList.Skip(batchQuantity * (batchNr - 1)).Take(BatchSize).ToList();
+                List<string> batch;
+                if(SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
+                {
+                    batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
+                }
+                else
+                {
+                    continue;
+                }
+                
                 if (batchNr > 1)
                 {
-                    LogBatchEnd(batchId, DateTime.Now, batchNr-1);
+                    LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
                 }
                 batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
             }
+
+            LogBatchEnd(batchId, DateTime.Now, batchQuantity);
+            LogTransferEnd(dataTransferId, DateTime.Now);
 
             //int i = 0;
             //foreach (var symbol in SymbolList.ToList())
@@ -453,11 +469,28 @@ namespace FmpDataTool
             return batchId;
         }
 
+        /// <summary>
+        /// LogBatchEnd
+        /// </summary>
+        /// <param name="batchId"></param>
+        /// <param name="now"></param>
+        /// <param name="batchNr"></param>
         private void LogBatchEnd(Guid batchId, DateTime now, int batchNr)
         {
             LogFinancials += $"\r\nOK! Batch {batchNr} processed successfully";
-
             DataContext.Instance.Batches.First(b => b.Id == batchId).End = now;
+            DataContext.Instance.SaveChanges();
+        }
+
+        /// <summary>
+        /// LogTransferEnd
+        /// </summary>
+        /// <param name="dataTransferId"></param>
+        /// <param name="now"></param>
+        private void LogTransferEnd(Guid dataTransferId, DateTime now)
+        {
+            LogFinancials += $"\r\nOK! Data transfer {dataTransferId} completed successfully";
+            DataContext.Instance.DataTransfer.First(b => b.Id == dataTransferId).End = now;
             DataContext.Instance.SaveChanges();
         }
     }
