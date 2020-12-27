@@ -69,12 +69,12 @@ namespace FmpDataTool
             SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
             SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
 
-    }
+        }
 
-    /// <summary>
-    /// MainWindowViewModel
-    /// </summary>
-    public MainWindowViewModel()
+        /// <summary>
+        /// MainWindowViewModel
+        /// </summary>
+        public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
@@ -360,24 +360,39 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            LogTransferStart();
+            var dataTransferId = LogTransferStart(DateTime.Now);
 
-            int i = 0;
-            foreach(var symbol in SymbolList.ToList())
+            int batchQuantity = SymbolList.Count() % BatchSize == 0
+                ? SymbolList.Count() / BatchSize
+                : SymbolList.Count() / BatchSize + 1;
+
+            Guid batchId = Guid.Empty;
+            for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
-                if(i == 1)
+                var batch = SymbolList.Skip(batchQuantity * (batchNr - 1)).Take(BatchSize).ToList();
+                if (batchNr > 1)
                 {
-                    break;
+                    LogBatchEnd(batchId, DateTime.Now, batchNr-1);
                 }
-                
-                var url = UrlIncome.Replace("{SYMBOL}", symbol);
-                using var httpClient = new HttpClient();
-                await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
-
-                i++;
+                batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
             }
 
-            
+            //int i = 0;
+            //foreach (var symbol in SymbolList.ToList())
+            //{
+            //    if (i == 1)
+            //    {
+            //        break;
+            //    }
+
+            //    var url = UrlIncome.Replace("{SYMBOL}", symbol);
+            //    using var httpClient = new HttpClient();
+            //    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
+
+            //    i++;
+            //}
+
+
         }
 
         /// <summary>
@@ -391,11 +406,59 @@ namespace FmpDataTool
             //Dispatcher.Invoke(() => SetDataStockList(stockList));
         }
 
-        private void LogTransferStart()
+        /// <summary>
+        /// LogTransferStart
+        /// </summary>
+        /// <param name="startTime"></param>
+        /// <returns></returns>
+        private Guid LogTransferStart(DateTime startTime)
         {
-            LogFinancials = "Requesting financials data...";
-            //DataContext.Instance.
-            //DataContext.Instance.SaveChanges();
+            var dataTranferId = Guid.NewGuid();
+            LogFinancials = $"Requesting financials data... Data tranfer id {dataTranferId}";
+
+            DataContext.Instance.DataTransfer.Add(new DataTransfer
+            {
+                Id = dataTranferId,
+                Start = startTime
+            });
+            DataContext.Instance.SaveChanges();
+            return dataTranferId;
+        }
+
+        /// <summary>
+        /// LogBatchStart
+        /// </summary>
+        /// <param name="dataTransferId"></param>
+        /// <param name="now"></param>
+        /// <param name="startSymbol"></param>
+        /// <param name="endSymbol"></param>
+        /// <param name="batchNr"></param>
+        /// <param name="batchQuantity"></param>
+        /// <returns></returns>
+        private Guid LogBatchStart(Guid dataTransferId, DateTime now, string startSymbol, string endSymbol, int batchNr, int batchQuantity)
+        {
+            var batchId = Guid.NewGuid();
+
+            LogFinancials += $"\r\nProcessing batch {batchNr} of {batchQuantity}    id {batchId}    symbols from {startSymbol} to {endSymbol} ...";
+
+            DataContext.Instance.Batches.Add(new Batch
+            {
+                Id = batchId,
+                DataTransferId = dataTransferId,
+                Start = now,
+                StartSymbol = startSymbol,
+                EndSymbol = endSymbol
+            });
+            DataContext.Instance.SaveChanges();
+            return batchId;
+        }
+
+        private void LogBatchEnd(Guid batchId, DateTime now, int batchNr)
+        {
+            LogFinancials += $"\r\nOK! Batch {batchNr} processed successfully";
+
+            DataContext.Instance.Batches.First(b => b.Id == batchId).End = now;
+            DataContext.Instance.SaveChanges();
         }
     }
 }

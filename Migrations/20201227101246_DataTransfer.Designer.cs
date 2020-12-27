@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FmpDataTool.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20201227091915_DataTransfer")]
+    [Migration("20201227101246_DataTransfer")]
     partial class DataTransfer
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -61,7 +61,7 @@ namespace FmpDataTool.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataTranfer");
+                    b.ToTable("DataTransfer");
                 });
 
             modelBuilder.Entity("FmpDataTool.Model.Stock", b =>

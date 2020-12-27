@@ -24,7 +24,7 @@ namespace FmpDataTool.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DataTranfer",
+                name: "DataTransfer",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -33,7 +33,7 @@ namespace FmpDataTool.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DataTranfer", x => x.Id);
+                    table.PrimaryKey("PK_DataTransfer", x => x.Id);
                 });
         }
 
@@ -43,7 +43,7 @@ namespace FmpDataTool.Migrations
                 name: "Batches");
 
             migrationBuilder.DropTable(
-                name: "DataTranfer");
+                name: "DataTransfer");
         }
     }
 }

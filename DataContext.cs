@@ -40,7 +40,7 @@ namespace FmpDataTool
         }
 
         public DbSet<Stock> Stocks { get; set; }
-        public DbSet<DataTransfer> DataTranfer { get; set; }
+        public DbSet<DataTransfer> DataTransfer { get; set; }
         public DbSet<Batch> Batches { get; set; }
     }
 }

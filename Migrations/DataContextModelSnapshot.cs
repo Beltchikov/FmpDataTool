@@ -59,7 +59,7 @@ namespace FmpDataTool.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataTranfer");
+                    b.ToTable("DataTransfer");
                 });
 
             modelBuilder.Entity("FmpDataTool.Model.Stock", b =>
