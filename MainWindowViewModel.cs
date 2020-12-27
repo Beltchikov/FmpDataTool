@@ -90,6 +90,12 @@ namespace FmpDataTool
             UrlIncome = Configuration.Instance["UrlIncome"];
             UrlBalance = Configuration.Instance["UrlBalance"];
             UrlCashFlow = Configuration.Instance["UrlCashFlow"];
+            UrlList = new List<UrlAndType> {
+                new UrlAndType{Url= UrlIncome, ReturnType = typeof(IncomeStatement)},
+                new UrlAndType{Url= UrlBalance, ReturnType = typeof(BalanceSheet)},
+                new UrlAndType{Url= UrlCashFlow, ReturnType = typeof(CashFlowStatement)},
+
+            };
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -272,9 +278,24 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// FirstBatchFirstSymbol
+        /// FirstCallbackIncomeStatement
         /// </summary>
-        public bool FirstBatchFirstSymbol { get; private set; }
+        public bool FirstCallbackIncomeStatement { get; private set; }
+
+        /// <summary>
+        /// FirstCallbackBalanceSheet
+        /// </summary>
+        public bool FirstCallbackBalanceSheet { get; private set; }
+
+        /// <summary>
+        /// FirstCallbackCashFlowStatement
+        /// </summary>
+        public bool FirstCallbackCashFlowStatement { get; private set; }
+
+        /// <summary>
+        /// UrlList
+        /// </summary>
+        public List<UrlAndType> UrlList { get; private set; }
 
         /// <summary>
         /// GetStockList
@@ -425,7 +446,7 @@ namespace FmpDataTool
                 : SymbolList.Count() / BatchSize + 1;
             ProgressMaxBatches = batchQuantity;
             ProgressMaxSymbols = BatchSize;
-            FirstBatchFirstSymbol = true;
+            ResetFirstCallBackValues();
 
             // For every batch
             var dataTransferId = LogTransferStart(DateTime.Now);
@@ -453,14 +474,24 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// ResetFirstCallBackValues
+        /// </summary>
+        private void ResetFirstCallBackValues()
+        {
+            FirstCallbackIncomeStatement = true;
+            FirstCallbackBalanceSheet = true;
+            FirstCallbackCashFlowStatement = true;
+        }
+
+        /// <summary>
         /// CheckDatabaseNotEmpty
         /// </summary>
         /// <returns></returns>
         private bool CheckDatabaseNotEmpty()
         {
-            if (DataContext.Instance.IncomeStatements.Any())
+            if (DataContext.Instance.IncomeStatements.Any() || DataContext.Instance.BalanceSheets.Any() || DataContext.Instance.CashFlowStatements.Any())
             {
-                MessageBoxResult messageBoxResult = MessageBox.Show("The table 'IncomeStatement' is not empty. Do you want to overwrite it?", "Warning! Database not empty!", MessageBoxButton.YesNo);
+                MessageBoxResult messageBoxResult = MessageBox.Show("Some tables in the database are not empty. Do you want to overwrite data in them?", "Warning! Database not empty!", MessageBoxButton.YesNo);
                 if (messageBoxResult == MessageBoxResult.Yes)
                 {
                     return true;
@@ -492,13 +523,41 @@ namespace FmpDataTool
                 }
                 LogSymbolStart(symbol);
 
-                // Send HTTP Request
-                ResponsePending = true;
-                var url = UrlIncome.Replace("{SYMBOL}", symbol);
-                using var httpClient = new HttpClient();
-                await httpClient.GetAsync(url).ContinueWith((r) => OnRequestIncomeCompleteAsync(r));
-
+                foreach (var urlAndType in UrlList)
+                {
+                    while (ResponsePending)
+                    { }
+                    var url = urlAndType.Url.Replace("{SYMBOL}", symbol);
+                    using var httpClient = new HttpClient();
+                    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestCompleteSwitch(r, urlAndType));
+                }
                 symbolBefore = symbol;
+            }
+        }
+
+        /// <summary>
+        /// OnRequestCompleteSwitch
+        /// </summary>
+        /// <param name="requestTask"></param>
+        /// <param name="urlAndType"></param>
+        /// <returns></returns>
+        private async Task OnRequestCompleteSwitch(Task<HttpResponseMessage> requestTask, UrlAndType urlAndType)
+        {
+            if (urlAndType.ReturnType == typeof(IncomeStatement))
+            {
+                await OnRequestCompleteAsync<IncomeStatement>(requestTask);
+            }
+            else if (urlAndType.ReturnType == typeof(BalanceSheet))
+            {
+                await OnRequestCompleteAsync<BalanceSheet>(requestTask);
+            }
+            else if (urlAndType.ReturnType == typeof(CashFlowStatement))
+            {
+                await OnRequestCompleteAsync<CashFlowStatement>(requestTask);
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -506,32 +565,50 @@ namespace FmpDataTool
         /// OnRequestIncomeCompleteAsync
         /// </summary>
         /// <param name="r"></param>
-        private async Task OnRequestIncomeCompleteAsync(Task<HttpResponseMessage> requestTask)
+        private async Task OnRequestCompleteAsync<TEntity>(Task<HttpResponseMessage> requestTask) where TEntity : class
         {
             object lockObject = new object();
 
             try
             {
                 var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
-                IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
+                TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
                 lock (lockObject)
                 {
-                    if (FirstBatchFirstSymbol)
+                    if (FirstCallbackIncomeStatement || FirstCallbackBalanceSheet || FirstCallbackCashFlowStatement)
                     {
-                        DataContext.Instance.IncomeStatements.RemoveRange(DataContext.Instance.IncomeStatements);
+                        DataContext.Instance.Set<TEntity>().RemoveRange(DataContext.Instance.Set<TEntity>());
                     }
-                    DataContext.Instance.IncomeStatements.AddRange(incomeStatements);
+                    DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
                     DataContext.Instance.SaveChanges();
-                    Dispatcher.Invoke(() => {
-                        ResponsePending = false;
-                        FirstBatchFirstSymbol = false;
-                    });
+                    Dispatcher.Invoke(() =>{AfterResponseProcessed(financialDocument);});
                 }
             }
             catch (Exception ex)
             {
                 LogFinancials += ex.ToString();
                 throw ex;
+            }
+        }
+
+        /// <summary>
+        /// AfterRequest
+        /// </summary>
+        /// <param name="financialDocument"></param>
+        private void AfterResponseProcessed(object financialDocument)
+        {
+            ResponsePending = false;
+            if (financialDocument is IncomeStatement[])
+            {
+                FirstCallbackIncomeStatement = false;
+            }
+            if (financialDocument is BalanceSheet[])
+            {
+                FirstCallbackBalanceSheet = false;
+            }
+            if (financialDocument is CashFlowStatement[])
+            {
+                FirstCallbackCashFlowStatement = false;
             }
         }
 
