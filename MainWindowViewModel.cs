@@ -37,6 +37,10 @@ namespace FmpDataTool
         public static readonly DependencyProperty LogFinancialsProperty;
         public static readonly DependencyProperty SymbolListProperty;
         public static readonly DependencyProperty SymbolListAsTextProperty;
+        public static readonly DependencyProperty ProgressValueFinancialsProperty;
+        public static readonly DependencyProperty ProgressMaxFinancialsProperty;
+        public static readonly DependencyProperty ProgressValueBatchesProperty;
+        public static readonly DependencyProperty ProgressMaxBatchesProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -68,7 +72,10 @@ namespace FmpDataTool
             LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
             SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-
+            ProgressValueFinancialsProperty = DependencyProperty.Register("ProgressValueFinancials", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressMaxFinancialsProperty = DependencyProperty.Register("ProgressMaxFinancials", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressValueBatchesProperty = DependencyProperty.Register("ProgressValueBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ProgressMaxBatchesProperty = DependencyProperty.Register("ProgressMaxBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
         }
 
         /// <summary>
@@ -229,6 +236,42 @@ namespace FmpDataTool
         public bool ResponsePending { get; set; }
 
         /// <summary>
+        /// ProgressValueFinancials
+        /// </summary>
+        public int ProgressValueFinancials
+        {
+            get { return (int)GetValue(ProgressValueFinancialsProperty); }
+            set { SetValue(ProgressValueFinancialsProperty, value); }
+        }
+
+        /// <summary>
+        /// ProgressMaxFinancials
+        /// </summary>
+        public int ProgressMaxFinancials
+        {
+            get { return (int)GetValue(ProgressMaxFinancialsProperty); }
+            set { SetValue(ProgressMaxFinancialsProperty, value); }
+        }
+
+        /// <summary>
+        /// ProgressValueBatches
+        /// </summary>
+        public int ProgressValueBatches
+        {
+            get { return (int)GetValue(ProgressValueBatchesProperty); }
+            set { SetValue(ProgressValueBatchesProperty, value); }
+        }
+
+        /// <summary>
+        /// ProgressMaxBatches
+        /// </summary>
+        public int ProgressMaxBatches
+        {
+            get { return (int)GetValue(ProgressMaxBatchesProperty); }
+            set { SetValue(ProgressMaxBatchesProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -365,18 +408,26 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            var dataTransferId = LogTransferStart(DateTime.Now);
-
+            if(!CheckDatabaseNotEmpty())
+            {
+                return;
+            }
+            
             // Prepare batch calculation
             SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             int batchQuantity = SymbolList.Count() % BatchSize == 0
                 ? SymbolList.Count() / BatchSize
                 : SymbolList.Count() / BatchSize + 1;
+            ProgressMaxFinancials = batchQuantity;
+            ProgressMaxBatches = BatchSize;
 
             // For every batch
+            var dataTransferId = LogTransferStart(DateTime.Now);
             Guid batchId = Guid.Empty;
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
+                ProgressValueFinancials= batchNr;
+
                 List<string> batch;
                 if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
                 {
@@ -396,6 +447,25 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// CheckDatabaseNotEmpty
+        /// </summary>
+        /// <returns></returns>
+        private bool CheckDatabaseNotEmpty()
+        {
+            if(DataContext.Instance.IncomeStatements.Any())
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show("The table 'IncomeStatement' is not empty. Do you want to overwrite it?", "Warning! Database not empty!", MessageBoxButton.YesNo);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// ProcessBatchAsync
         /// </summary>
         /// <param name="batch"></param>
@@ -405,6 +475,7 @@ namespace FmpDataTool
             var symbolBefore = string.Empty;
             foreach (string symbol in batch)
             {
+                ProgressValueBatches++;
                 while (ResponsePending)
                 { }
 
@@ -438,6 +509,7 @@ namespace FmpDataTool
                 IncomeStatement[] incomeStatements = await JsonSerializer.DeserializeAsync<IncomeStatement[]>(contentStream);
                 lock (lockObject)
                 {
+                    DataContext.Instance.IncomeStatements.RemoveRange(DataContext.Instance.IncomeStatements);
                     DataContext.Instance.IncomeStatements.AddRange(incomeStatements);
                     DataContext.Instance.SaveChanges();
                     Dispatcher.Invoke(() => ResponsePending = false);
@@ -445,7 +517,6 @@ namespace FmpDataTool
             }
             catch (Exception ex)
             {
-
                 LogFinancials += ex.ToString();
             }
         }

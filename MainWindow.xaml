@@ -290,8 +290,9 @@
                                  Margin="0,10,0,0"></TextBox>
                     </Grid>
                     <ProgressBar x:Name="prgBatch"
-                                Maximum="750" Minimum="0" 
-                                 Value="200"
+                                Maximum="{Binding ProgressMaxBatches}" 
+                                 Minimum="0" 
+                                 Value="{Binding ProgressValueBatches}"
                                  Grid.Row="8"
                                  Margin="125,0,10,0" Grid.Column="1"/>
                     <ProgressBar x:Name="prgTotal"
