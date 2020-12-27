@@ -14,8 +14,6 @@ namespace FmpDataTool
         private static DataContext _dataContext;
         private static readonly object lockObject = new object();
 
-        internal DataContext(){}
-
         public static DataContext Instance
         {
             get
@@ -42,5 +40,7 @@ namespace FmpDataTool
         }
 
         public DbSet<Stock> Stocks { get; set; }
+        public DbSet<DataTranfer> DataTranfer { get; set; }
+        public DbSet<Batch> Batches { get; set; }
     }
 }
