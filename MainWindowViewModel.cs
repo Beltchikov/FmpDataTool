@@ -41,6 +41,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty ProgressMaxBatchesProperty;
         public static readonly DependencyProperty ProgressValueSymbolsProperty;
         public static readonly DependencyProperty ProgressMaxSymbolsProperty;
+        public static readonly DependencyProperty BatchProcessInfoProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -76,6 +77,7 @@ namespace FmpDataTool
             ProgressMaxBatchesProperty = DependencyProperty.Register("ProgressMaxBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressValueSymbolsProperty = DependencyProperty.Register("ProgressValueSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressMaxSymbolsProperty = DependencyProperty.Register("ProgressMaxSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
         }
 
         /// <summary>
@@ -96,6 +98,7 @@ namespace FmpDataTool
                 new UrlAndType{Url= UrlCashFlow, ReturnType = typeof(CashFlowStatement)},
 
             };
+            BatchProcessInfo = "Batches:";
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -283,6 +286,15 @@ namespace FmpDataTool
         public List<UrlAndType> UrlList { get; private set; }
 
         /// <summary>
+        /// BatchProcessInfo
+        /// </summary>
+        public string BatchProcessInfo
+        {
+            get { return (string)GetValue(BatchProcessInfoProperty); }
+            set { SetValue(BatchProcessInfoProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -433,6 +445,7 @@ namespace FmpDataTool
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
                 ProgressValueBatches = batchNr;
+                BatchProcessInfo = $"Batch {batchNr} of {batchQuantity} :";
 
                 List<string> batch;
                 if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
