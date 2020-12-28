@@ -300,6 +300,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
                         </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="{Binding SymbolProcessInfo}"></TextBlock>
                         <ProgressBar x:Name="prgBatch"
                                 Maximum="{Binding ProgressMaxSymbols}" 
                                  Minimum="0" 
@@ -319,7 +321,7 @@
                             <RowDefinition Height="30"></RowDefinition>
                         </Grid.RowDefinitions>
                        <TextBlock Grid.Row="0" Grid.Column="1"
-                                   Margin="0,0,0,0" Text="{Binding BatchProcessInfo}"></TextBlock>
+                                   Text="{Binding BatchProcessInfo}"></TextBlock>
                         <ProgressBar x:Name="prgTotal"
                                 Maximum="{Binding ProgressMaxBatches}" Minimum="0" 
                                  Value="{Binding ProgressValueBatches}"

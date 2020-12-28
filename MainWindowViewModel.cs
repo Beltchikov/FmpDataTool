@@ -42,6 +42,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty ProgressValueSymbolsProperty;
         public static readonly DependencyProperty ProgressMaxSymbolsProperty;
         public static readonly DependencyProperty BatchProcessInfoProperty;
+        public static readonly DependencyProperty SymbolProcessInfoProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -78,6 +79,7 @@ namespace FmpDataTool
             ProgressValueSymbolsProperty = DependencyProperty.Register("ProgressValueSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressMaxSymbolsProperty = DependencyProperty.Register("ProgressMaxSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            SymbolProcessInfoProperty =DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
         }
 
         /// <summary>
@@ -99,6 +101,7 @@ namespace FmpDataTool
 
             };
             BatchProcessInfo = "Batches:";
+            SymbolProcessInfo = "Symbols:";
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -295,6 +298,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// SymbolProcessInfo
+        /// </summary>
+        public string SymbolProcessInfo
+        {
+            get { return (string)GetValue(SymbolProcessInfoProperty); }
+            set { SetValue(SymbolProcessInfoProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -445,7 +457,7 @@ namespace FmpDataTool
             for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
             {
                 ProgressValueBatches = batchNr;
-                BatchProcessInfo = $"Batch {batchNr} of {batchQuantity} :";
+                BatchProcessInfo = $"Batch {batchNr} of {batchQuantity}";
 
                 List<string> batch;
                 if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
@@ -477,6 +489,7 @@ namespace FmpDataTool
             foreach (string symbol in batch)
             {
                 ProgressValueSymbols++;
+                SymbolProcessInfo = $"Symbol: {symbol}";
                 while (ResponsePending)
                 { }
 
