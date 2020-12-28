@@ -278,21 +278,6 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// FirstCallbackIncomeStatement
-        /// </summary>
-        public bool FirstCallbackIncomeStatement { get; private set; }
-
-        /// <summary>
-        /// FirstCallbackBalanceSheet
-        /// </summary>
-        public bool FirstCallbackBalanceSheet { get; private set; }
-
-        /// <summary>
-        /// FirstCallbackCashFlowStatement
-        /// </summary>
-        public bool FirstCallbackCashFlowStatement { get; private set; }
-
-        /// <summary>
         /// UrlList
         /// </summary>
         public List<UrlAndType> UrlList { get; private set; }
@@ -434,11 +419,6 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            if (!CheckDatabaseNotEmpty())
-            {
-                return;
-            }
-
             // Prepare batch calculation
             SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
             int batchQuantity = SymbolList.Count() % BatchSize == 0
@@ -446,7 +426,6 @@ namespace FmpDataTool
                 : SymbolList.Count() / BatchSize + 1;
             ProgressMaxBatches = batchQuantity;
             ProgressMaxSymbols = BatchSize;
-            ResetFirstCallBackValues();
 
             // For every batch
             var dataTransferId = LogTransferStart(DateTime.Now);
@@ -471,35 +450,6 @@ namespace FmpDataTool
 
             LogBatchEnd(batchId, DateTime.Now, batchQuantity);
             LogTransferEnd(dataTransferId, DateTime.Now);
-        }
-
-        /// <summary>
-        /// ResetFirstCallBackValues
-        /// </summary>
-        private void ResetFirstCallBackValues()
-        {
-            FirstCallbackIncomeStatement = true;
-            FirstCallbackBalanceSheet = true;
-            FirstCallbackCashFlowStatement = true;
-        }
-
-        /// <summary>
-        /// CheckDatabaseNotEmpty
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckDatabaseNotEmpty()
-        {
-            if (DataContext.Instance.IncomeStatements.Any() || DataContext.Instance.BalanceSheets.Any() || DataContext.Instance.CashFlowStatements.Any())
-            {
-                MessageBoxResult messageBoxResult = MessageBox.Show("Some tables in the database are not empty. Do you want to overwrite data in them?", "Warning! Database not empty!", MessageBoxButton.YesNo);
-                if (messageBoxResult == MessageBoxResult.Yes)
-                {
-                    return true;
-                }
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -575,13 +525,9 @@ namespace FmpDataTool
                 TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
                 lock (lockObject)
                 {
-                    if (FirstCallbackIncomeStatement || FirstCallbackBalanceSheet || FirstCallbackCashFlowStatement)
-                    {
-                        DataContext.Instance.Set<TEntity>().RemoveRange(DataContext.Instance.Set<TEntity>());
-                    }
                     DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
                     DataContext.Instance.SaveChanges();
-                    Dispatcher.Invoke(() =>{AfterResponseProcessed(financialDocument);});
+                    Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
                 }
             }
             catch (Exception ex)
@@ -598,18 +544,6 @@ namespace FmpDataTool
         private void AfterResponseProcessed(object financialDocument)
         {
             ResponsePending = false;
-            if (financialDocument is IncomeStatement[])
-            {
-                FirstCallbackIncomeStatement = false;
-            }
-            if (financialDocument is BalanceSheet[])
-            {
-                FirstCallbackBalanceSheet = false;
-            }
-            if (financialDocument is CashFlowStatement[])
-            {
-                FirstCallbackCashFlowStatement = false;
-            }
         }
 
         /// <summary>
