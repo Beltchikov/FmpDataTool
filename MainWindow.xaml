@@ -34,7 +34,6 @@
             https://financialmodelingprep.com/developer/docs/
         </Hyperlink>
         </TextBlock>
-
         <TabControl x:Name="tabControl" Grid.Row="1">
             <TabItem Header="Stock List" Cursor="Hand">
                 <Grid>
@@ -176,7 +175,7 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="10"></RowDefinition>
-                        <RowDefinition Height="100"></RowDefinition>
+                        <RowDefinition Height="250"></RowDefinition>
                         <RowDefinition Height="35"></RowDefinition>
                         <RowDefinition Height="35"></RowDefinition>
                         <RowDefinition Height="35"></RowDefinition>
@@ -299,7 +298,6 @@
                                  Text="{Binding ConnectionString}"
                                  Margin="0,10,0,0"></TextBox>
                     </Grid>
-
                     <Grid Grid.Row="8" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
@@ -319,7 +317,6 @@
                                  Grid.Row="0"
                                  Margin="0,0,10,0" Grid.Column="2"/>
                     </Grid>
-
                     <Grid Grid.Row="11" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
@@ -338,7 +335,6 @@
                                  Grid.Row="0"
                                  Margin="0,0,10,0" Grid.Column="2"/>
                     </Grid>
-
                     <Grid Grid.Row="13" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
@@ -354,8 +350,6 @@
                         <TextBlock Grid.Row="0" Grid.Column="2"
                                    Text="{Binding CurrentDocument}"></TextBlock>
                     </Grid>
-
-
                     <Grid Grid.Row="15" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
@@ -366,14 +360,11 @@
                         <TextBlock Grid.Column="1">Errors:</TextBlock>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
                             <TextBox x:Name="txtLogFinancials"  
-                                 Text="TODO"/>
+                                 Text="{Binding ErrorLogFinancials}"/>
                         </ScrollViewer>
                     </Grid>
                 </Grid>
             </TabItem>
         </TabControl>
-
-
-
     </Grid>
 </Window>

@@ -43,6 +43,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty BatchProcessInfoProperty;
         public static readonly DependencyProperty SymbolProcessInfoProperty;
         public static readonly DependencyProperty CurrentDocumentProperty;
+        public static readonly DependencyProperty ErrorLogFinancialsProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -80,7 +81,8 @@ namespace FmpDataTool
             BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        }
+            ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+    }
 
         /// <summary>
         /// MainWindowViewModel
@@ -307,6 +309,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// ErrorLogFinancials
+        /// </summary>
+        public string ErrorLogFinancials
+        {
+            get { return (string)GetValue(ErrorLogFinancialsProperty); }
+            set { SetValue(ErrorLogFinancialsProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -443,38 +454,46 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private async Task GetFinancialsAsync(object p)
         {
-            // Prepare batch calculation
-            SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
-            int batchQuantity = SymbolList.Count() % BatchSize == 0
-                ? SymbolList.Count() / BatchSize
-                : SymbolList.Count() / BatchSize + 1;
-            ProgressMaxBatches = batchQuantity;
-            ProgressMaxSymbols = BatchSize;
-
-            // For every batch
-            var dataTransferId = LogTransferStart(DateTime.Now);
-            Guid batchId = Guid.Empty;
-            for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
+            try
             {
-                ProgressValueBatches = batchNr;
-                BatchProcessInfo = $"Batch {batchNr} of {batchQuantity}";
+                // Prepare batch calculation
+                SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
+                int batchQuantity = SymbolList.Count() % BatchSize == 0
+                    ? SymbolList.Count() / BatchSize
+                    : SymbolList.Count() / BatchSize + 1;
+                ProgressMaxBatches = batchQuantity;
+                ProgressMaxSymbols = BatchSize;
 
-                List<string> batch;
-                if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
+                // For every batch
+                var dataTransferId = LogTransferStart(DateTime.Now);
+                Guid batchId = Guid.Empty;
+                for (int batchNr = 1; batchNr <= batchQuantity; batchNr++)
                 {
-                    batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
-                    if (batchNr > 1)
+                    ProgressValueBatches = batchNr;
+                    BatchProcessInfo = $"Batch {batchNr} of {batchQuantity}";
+
+                    List<string> batch;
+                    if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
                     {
-                        LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
+                        batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
+                        if (batchNr > 1)
+                        {
+                            LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
+                        }
+                        batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
+
+                        await ProcessBatchAsync(batch);
                     }
-                    batchId = LogBatchStart(dataTransferId, DateTime.Now, batch.First(), batch.Last(), batchNr, batchQuantity);
-
-                    await ProcessBatchAsync(batch);
                 }
-            }
 
-            LogBatchEnd(batchId, DateTime.Now, batchQuantity);
-            LogTransferEnd(dataTransferId, DateTime.Now);
+                LogBatchEnd(batchId, DateTime.Now, batchQuantity);
+                LogTransferEnd(dataTransferId, DateTime.Now);
+            }
+            catch (Exception exception)
+            {
+                ErrorLogFinancials += Environment.NewLine + exception.ToString();
+                throw exception;
+            }
         }
 
         /// <summary>
