@@ -80,9 +80,9 @@ namespace FmpDataTool
             ProgressValueSymbolsProperty = DependencyProperty.Register("ProgressValueSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressMaxSymbolsProperty = DependencyProperty.Register("ProgressMaxSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            SymbolProcessInfoProperty =DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-    }
+        }
 
         /// <summary>
         /// MainWindowViewModel
@@ -561,11 +561,18 @@ namespace FmpDataTool
             {
                 var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
                 TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
-                lock (lockObject)
+                if (financialDocument.Any())
                 {
-                    DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
-                    DataContext.Instance.SaveChanges();
-                    Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
+                    lock (lockObject)
+                    {
+                        DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
+                        DataContext.Instance.SaveChanges();
+                        Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
+                    }
+                }
+                else
+                {
+                    CurrentDocument = "No data...";
                 }
             }
             catch (Exception ex)
