@@ -181,6 +181,8 @@
                         <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="15"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
+                        <RowDefinition Height="15"></RowDefinition>
+                        <RowDefinition Height="10"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                         <RowDefinition Height="10"></RowDefinition>
                     </Grid.RowDefinitions>
@@ -320,7 +322,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"></RowDefinition>
                         </Grid.RowDefinitions>
-                       <TextBlock Grid.Row="0" Grid.Column="1"
+                        <TextBlock Grid.Row="0" Grid.Column="1"
                                    Text="{Binding BatchProcessInfo}"></TextBlock>
                         <ProgressBar x:Name="prgTotal"
                                 Maximum="{Binding ProgressMaxBatches}" Minimum="0" 
@@ -329,8 +331,24 @@
                                  Margin="0,0,10,0" Grid.Column="2"/>
                     </Grid>
 
-
                     <Grid Grid.Row="13" Grid.ColumnSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="5"></ColumnDefinition>
+                            <ColumnDefinition Width="150"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="10"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="Document:"></TextBlock>
+                        <TextBlock Grid.Row="0" Grid.Column="2"
+                                   Text="{Binding CurrentDocument}"></TextBlock>
+                    </Grid>
+
+
+                    <Grid Grid.Row="15" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"></ColumnDefinition>
                             <ColumnDefinition Width="150"></ColumnDefinition>

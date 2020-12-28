@@ -10,7 +10,7 @@ namespace FmpDataTool.Model
     public class UrlAndType
     {
         public string Url { get; set; }
-
+        public string DocumentName { get; set; }
         public Type ReturnType { get; set; }
     }
 }

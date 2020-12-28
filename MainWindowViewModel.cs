@@ -43,6 +43,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty ProgressMaxSymbolsProperty;
         public static readonly DependencyProperty BatchProcessInfoProperty;
         public static readonly DependencyProperty SymbolProcessInfoProperty;
+        public static readonly DependencyProperty CurrentDocumentProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -80,7 +81,8 @@ namespace FmpDataTool
             ProgressMaxSymbolsProperty = DependencyProperty.Register("ProgressMaxSymbols", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolProcessInfoProperty =DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        }
+            CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+    }
 
         /// <summary>
         /// MainWindowViewModel
@@ -95,9 +97,9 @@ namespace FmpDataTool
             UrlBalance = Configuration.Instance["UrlBalance"];
             UrlCashFlow = Configuration.Instance["UrlCashFlow"];
             UrlList = new List<UrlAndType> {
-                new UrlAndType{Url= UrlIncome, ReturnType = typeof(IncomeStatement)},
-                new UrlAndType{Url= UrlBalance, ReturnType = typeof(BalanceSheet)},
-                new UrlAndType{Url= UrlCashFlow, ReturnType = typeof(CashFlowStatement)},
+                new UrlAndType{Url= UrlIncome, ReturnType = typeof(IncomeStatement), DocumentName= "Income Statement"},
+                new UrlAndType{Url= UrlBalance, ReturnType = typeof(BalanceSheet), DocumentName= "Balance Sheet"},
+                new UrlAndType{Url= UrlCashFlow, ReturnType = typeof(CashFlowStatement), DocumentName= "Cash Flow Statement"},
 
             };
             BatchProcessInfo = "Batches:";
@@ -307,6 +309,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// CurrentDocument
+        /// </summary>
+        public string CurrentDocument
+        {
+            get { return (string)GetValue(CurrentDocumentProperty); }
+            set { SetValue(CurrentDocumentProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -503,6 +514,7 @@ namespace FmpDataTool
                 {
                     while (ResponsePending)
                     { }
+                    CurrentDocument = urlAndType.DocumentName;
                     var url = urlAndType.Url.Replace("{SYMBOL}", symbol);
                     using var httpClient = new HttpClient();
                     await httpClient.GetAsync(url).ContinueWith((r) => OnRequestCompleteSwitch(r, urlAndType));
