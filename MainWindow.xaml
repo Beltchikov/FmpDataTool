@@ -363,10 +363,10 @@
                             <ColumnDefinition Width="*"></ColumnDefinition>
                             <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1">Log:</TextBlock>
+                        <TextBlock Grid.Column="1">Errors:</TextBlock>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
                             <TextBox x:Name="txtLogFinancials"  
-                                 Text="{Binding LogFinancials}"/>
+                                 Text="TODO"/>
                         </ScrollViewer>
                     </Grid>
                 </Grid>

@@ -34,7 +34,6 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlIncomeProperty;
         public static readonly DependencyProperty UrlBalanceProperty;
         public static readonly DependencyProperty UrlCashFlowProperty;
-        public static readonly DependencyProperty LogFinancialsProperty;
         public static readonly DependencyProperty SymbolListProperty;
         public static readonly DependencyProperty SymbolListAsTextProperty;
         public static readonly DependencyProperty ProgressValueBatchesProperty;
@@ -72,7 +71,6 @@ namespace FmpDataTool
             UrlIncomeProperty = DependencyProperty.Register("UrlIncome", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlBalanceProperty = DependencyProperty.Register("UrlBalance", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            LogFinancialsProperty = DependencyProperty.Register("LogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
             SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ProgressValueBatchesProperty = DependencyProperty.Register("ProgressValueBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
@@ -224,15 +222,6 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(UrlCashFlowProperty); }
             set { SetValue(UrlCashFlowProperty, value); }
-        }
-
-        /// <summary>
-        /// LogFinancials
-        /// </summary>
-        public string LogFinancials
-        {
-            get { return (string)GetValue(LogFinancialsProperty); }
-            set { SetValue(LogFinancialsProperty, value); }
         }
 
         /// <summary>
@@ -504,12 +493,6 @@ namespace FmpDataTool
                 while (ResponsePending)
                 { }
 
-                if (!String.IsNullOrWhiteSpace(symbolBefore))
-                {
-                    LogSymbolEnd(symbol);
-                }
-                LogSymbolStart(symbol);
-
                 foreach (var urlAndType in UrlList)
                 {
                     while (ResponsePending)
@@ -557,28 +540,20 @@ namespace FmpDataTool
         {
             object lockObject = new object();
 
-            try
+            var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
+            TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
+            if (financialDocument.Any())
             {
-                var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
-                TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
-                if (financialDocument.Any())
+                lock (lockObject)
                 {
-                    lock (lockObject)
-                    {
-                        DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
-                        DataContext.Instance.SaveChanges();
-                        Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
-                    }
-                }
-                else
-                {
-                    CurrentDocument = "No data...";
+                    DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
+                    DataContext.Instance.SaveChanges();
+                    Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
                 }
             }
-            catch (Exception ex)
+            else
             {
-                LogFinancials += ex.ToString();
-                throw ex;
+                CurrentDocument = "No data...";
             }
         }
 
@@ -599,8 +574,6 @@ namespace FmpDataTool
         private Guid LogTransferStart(DateTime startTime)
         {
             var dataTranferId = Guid.NewGuid();
-            LogFinancials = $"Requesting financials data... Data tranfer id {dataTranferId}";
-
             DataContext.Instance.DataTransfer.Add(new DataTransfer
             {
                 Id = dataTranferId,
@@ -623,9 +596,6 @@ namespace FmpDataTool
         private Guid LogBatchStart(Guid dataTransferId, DateTime now, string startSymbol, string endSymbol, int batchNr, int batchQuantity)
         {
             var batchId = Guid.NewGuid();
-
-            LogFinancials += $"\r\nProcessing batch {batchNr} of {batchQuantity}    id {batchId}    symbols from {startSymbol} to {endSymbol} ...";
-
             DataContext.Instance.Batches.Add(new Batch
             {
                 Id = batchId,
@@ -646,7 +616,6 @@ namespace FmpDataTool
         /// <param name="batchNr"></param>
         private void LogBatchEnd(Guid batchId, DateTime now, int batchNr)
         {
-            LogFinancials += $"\r\nOK! Batch {batchNr} processed successfully";
             DataContext.Instance.Batches.First(b => b.Id == batchId).End = now;
             DataContext.Instance.SaveChanges();
         }
@@ -658,27 +627,8 @@ namespace FmpDataTool
         /// <param name="now"></param>
         private void LogTransferEnd(Guid dataTransferId, DateTime now)
         {
-            LogFinancials += $"\r\nOK! Data transfer {dataTransferId} completed successfully";
             DataContext.Instance.DataTransfer.First(b => b.Id == dataTransferId).End = now;
             DataContext.Instance.SaveChanges();
-        }
-
-        /// <summary>
-        /// LogSymbolStart
-        /// </summary>
-        /// <param name="symbol"></param>
-        private void LogSymbolStart(string symbol)
-        {
-            LogFinancials += $"\r\nProcessing  {symbol} ...";
-        }
-
-        /// <summary>
-        /// LogSymbolEnd
-        /// </summary>
-        /// <param name="symbol"></param>
-        private void LogSymbolEnd(string symbol)
-        {
-            LogFinancials += $"\r\nOK! {symbol} has been processed successfully.";
         }
     }
 }
