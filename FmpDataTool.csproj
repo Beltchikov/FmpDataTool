@@ -23,4 +23,15 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Ib\Messages\" />
+    <Folder Include="Libraries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CSharpAPI">
+      <HintPath>Libraries\CSharpAPI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

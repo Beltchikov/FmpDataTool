@@ -15,6 +15,10 @@ using Microsoft.Win32;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using IBApi;
+using FmpDataTool.Ib;
+using System.Threading;
+using IBSampleApp;
 
 namespace FmpDataTool
 {
@@ -44,6 +48,9 @@ namespace FmpDataTool
         public static readonly DependencyProperty SymbolProcessInfoProperty;
         public static readonly DependencyProperty CurrentDocumentProperty;
         public static readonly DependencyProperty ErrorLogFinancialsProperty;
+        public static readonly DependencyProperty IsConnectedIbProperty;
+        public static readonly DependencyProperty PortIbProperty;
+        public static readonly DependencyProperty ClientIdIbProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -52,9 +59,12 @@ namespace FmpDataTool
         public RelayCommand CommandLoadFromFile { get; set; }
         public RelayCommand CommandSaveToDatabase { get; set; }
         public RelayCommand CommandGetFinancials { get; set; }
+        public RelayCommand CommandConnectToIb { get; set; }
 
 
         private DispatcherTimer timer;
+        private EReaderMonitorSignal signal = new EReaderMonitorSignal();
+        protected IBClient ibClient;
 
         /// <summary>
         /// MainWindowViewModel - Static
@@ -82,13 +92,19 @@ namespace FmpDataTool
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-    }
+            IsConnectedIbProperty = DependencyProperty.Register("IsConnectedIb", typeof(bool), typeof(MainWindowViewModel), new PropertyMetadata(default(bool)));
+            PortIbProperty = DependencyProperty.Register("PortIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+            ClientIdIbProperty = DependencyProperty.Register("ClientIdIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+
+        }
 
         /// <summary>
         /// MainWindowViewModel
         /// </summary>
         public MainWindowViewModel()
         {
+            ibClient = new IBClient(signal);
+
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
             ConnectionString = Configuration.Instance["ConnectionString"];
@@ -104,6 +120,8 @@ namespace FmpDataTool
             };
             BatchProcessInfo = "Batches:";
             SymbolProcessInfo = "Symbols:";
+            PortIb = 4001;
+            ClientIdIb = 1;
 
             CommandRequestNavigate = new RelayCommand(p => { Process.Start(new ProcessStartInfo(((Uri)p).AbsoluteUri) { UseShellExecute = true }); });
             CommandGetStockList = new RelayCommand(async (p) => await GetStockList(p));
@@ -112,6 +130,7 @@ namespace FmpDataTool
             CommandLoadFromFile = new RelayCommand((p) => LoadFromFile(p));
             CommandSaveToDatabase = new RelayCommand((p) => SaveToDatabase(p));
             CommandGetFinancials = new RelayCommand(async (p) => await GetFinancialsAsync(p));
+            CommandConnectToIb = new RelayCommand((p) => ConnectToIb(p));
 
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
@@ -315,6 +334,33 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(ErrorLogFinancialsProperty); }
             set { SetValue(ErrorLogFinancialsProperty, value); }
+        }
+
+        /// <summary>
+        /// IsConnectedIb
+        /// </summary>
+        public bool IsConnectedIb
+        {
+            get { return (bool)GetValue(IsConnectedIbProperty); }
+            set { SetValue(IsConnectedIbProperty, value); }
+        }
+
+        /// <summary>
+        /// PortIb
+        /// </summary>
+        public int PortIb
+        {
+            get { return (int)GetValue(PortIbProperty); }
+            set { SetValue(PortIbProperty, value); }
+        }
+
+        /// <summary>
+        /// ClientIdIb
+        /// </summary>
+        public int ClientIdIb
+        {
+            get { return (int)GetValue(ClientIdIbProperty); }
+            set { SetValue(ClientIdIbProperty, value); }
         }
 
         /// <summary>
@@ -583,6 +629,76 @@ namespace FmpDataTool
         private void AfterResponseProcessed(object financialDocument)
         {
             ResponsePending = false;
+        }
+
+        /// <summary>
+        /// ConnectToIb
+        /// </summary>
+        /// <param name="p"></param>
+        private void ConnectToIb(object p)
+        {
+            if (!IsConnectedIb)
+            {
+                string host = Configuration.Instance["Localhost"];
+
+                try
+                {
+                    ibClient.ClientSocket.eConnect(host, PortIb, ClientIdIb);
+                    var reader = new EReader(ibClient.ClientSocket, signal);
+                    reader.Start();
+                    new Thread(() => { while (ibClient.ClientSocket.IsConnected()) { signal.waitForSignal(); reader.processMsgs(); } }) { IsBackground = true }.Start();
+                }
+                catch (Exception)
+                {
+                    HandleErrorMessage(new ErrorMessage(-1, -1, "Please check your connection attributes."));
+                }
+            }
+            else
+            {
+                IsConnectedIb = false;
+                ibClient.ClientSocket.eDisconnect();
+            }
+        }
+
+        private void HandleErrorMessage(ErrorMessage message)
+        {
+            // TODO
+
+            var test = 0;
+            
+            //ShowMessageOnPanel("Request " + message.RequestId + ", Code: " + message.ErrorCode + " - " + message.Message);
+
+            //if (message.RequestId > MarketDataManager.TICK_ID_BASE && message.RequestId < DeepBookManager.TICK_ID_BASE)
+            //    marketDataManager.NotifyError(message.RequestId);
+            //else if (message.RequestId > DeepBookManager.TICK_ID_BASE && message.RequestId < HistoricalDataManager.HISTORICAL_ID_BASE)
+            //{
+            //    if (message.ErrorCode != 2151)
+            //    {
+            //        deepBookManager.NotifyError(message.RequestId);
+            //    }
+            //}
+            //else if (message.RequestId == ContractManager.CONTRACT_DETAILS_ID)
+            //{
+            //    contractManager.HandleRequestError(message.RequestId);
+            //    searchContractDetails.Enabled = true;
+            //}
+            //else if (message.RequestId == ContractManager.FUNDAMENTALS_ID)
+            //{
+            //    contractManager.HandleRequestError(message.RequestId);
+            //    fundamentalsQueryButton.Enabled = true;
+            //}
+            //else if (message.RequestId == OptionsManager.OPTIONS_ID_BASE)
+            //{
+            //    optionsManager.Clear();
+            //    queryOptionChain.Enabled = true;
+            //}
+            //else if (message.RequestId > OptionsManager.OPTIONS_ID_BASE)
+            //{
+            //    queryOptionChain.Enabled = true;
+            //}
+            //if (message.ErrorCode == 202)
+            //{
+            //}
         }
 
         /// <summary>

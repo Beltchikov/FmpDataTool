@@ -6,6 +6,9 @@ using System.Text;
 
 namespace FmpDataTool
 {
+    /// <summary>
+    /// Configuration
+    /// </summary>
     public class Configuration
     {
         private static IConfiguration _configuration;
@@ -13,6 +16,9 @@ namespace FmpDataTool
 
         Configuration(){}
 
+        /// <summary>
+        /// Instance
+        /// </summary>
         public static IConfiguration Instance
         {
             get
