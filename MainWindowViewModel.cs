@@ -51,6 +51,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty IsConnectedIbProperty;
         public static readonly DependencyProperty PortIbProperty;
         public static readonly DependencyProperty ClientIdIbProperty;
+        public static readonly DependencyProperty LogIbProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -95,8 +96,8 @@ namespace FmpDataTool
             IsConnectedIbProperty = DependencyProperty.Register("IsConnectedIb", typeof(bool), typeof(MainWindowViewModel), new PropertyMetadata(default(bool)));
             PortIbProperty = DependencyProperty.Register("PortIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ClientIdIbProperty = DependencyProperty.Register("ClientIdIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
-
-        }
+            LogIbProperty = DependencyProperty.Register("LogIb", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+    }
 
         /// <summary>
         /// MainWindowViewModel
@@ -361,6 +362,15 @@ namespace FmpDataTool
         {
             get { return (int)GetValue(ClientIdIbProperty); }
             set { SetValue(ClientIdIbProperty, value); }
+        }
+
+        /// <summary>
+        /// LogIb
+        /// </summary>
+        public string LogIb
+        {
+            get { return (string)GetValue(LogIbProperty); }
+            set { SetValue(LogIbProperty, value); }
         }
 
         /// <summary>
@@ -646,11 +656,24 @@ namespace FmpDataTool
                     ibClient.ClientSocket.eConnect(host, PortIb, ClientIdIb);
                     var reader = new EReader(ibClient.ClientSocket, signal);
                     reader.Start();
-                    new Thread(() => { while (ibClient.ClientSocket.IsConnected()) { signal.waitForSignal(); reader.processMsgs(); } }) { IsBackground = true }.Start();
+                    new Thread(() => {
+                        var connectionMessageSent = false;
+                        while (ibClient.ClientSocket.IsConnected()) 
+                        { 
+                            if(!connectionMessageSent)
+                            {
+                                Dispatcher.Invoke(() => { LogIb += "OK! IB server connection established."; });
+                                connectionMessageSent = true;
+                            }
+                            signal.waitForSignal(); 
+                            reader.processMsgs(); 
+                        } 
+                    }) { IsBackground = true }.Start();
                 }
                 catch (Exception)
                 {
-                    HandleErrorMessage(new ErrorMessage(-1, -1, "Please check your connection attributes."));
+                    LogIb += "\n\rERROR! Please check your IB connection attributes.";
+                    HandleErrorMessage(new ErrorMessage(-1, -1, "Please check your IB connection attributes."));
                 }
             }
             else

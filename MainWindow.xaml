@@ -372,6 +372,7 @@
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="10"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
@@ -423,6 +424,20 @@
                         </Grid.ColumnDefinitions>
                         <Label Content="Database Connection"></Label>
                         <TextBox x:Name="txtDatabaseConnection" 
+                                 Grid.Column="1" 
+                                 Margin="2,2,2,2"></TextBox>
+
+                    </Grid>
+                    <Grid Grid.Column="3" 
+                       Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Log"></Label>
+                        <TextBox x:Name="txtLogIb" 
+                                 Text="{Binding LogIb}"
                                  Grid.Column="1" 
                                  Margin="2,2,2,2"></TextBox>
 
