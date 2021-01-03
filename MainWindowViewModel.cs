@@ -48,7 +48,6 @@ namespace FmpDataTool
         public static readonly DependencyProperty SymbolProcessInfoProperty;
         public static readonly DependencyProperty CurrentDocumentProperty;
         public static readonly DependencyProperty ErrorLogFinancialsProperty;
-        public static readonly DependencyProperty IsConnectedIbProperty;
         public static readonly DependencyProperty PortIbProperty;
         public static readonly DependencyProperty ClientIdIbProperty;
         public static readonly DependencyProperty LogIbProperty;
@@ -62,10 +61,7 @@ namespace FmpDataTool
         public RelayCommand CommandGetFinancials { get; set; }
         public RelayCommand CommandConnectToIb { get; set; }
 
-
         private DispatcherTimer timer;
-        private EReaderMonitorSignal signal = new EReaderMonitorSignal();
-        protected IBClient ibClient;
 
         /// <summary>
         /// MainWindowViewModel - Static
@@ -93,19 +89,16 @@ namespace FmpDataTool
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            IsConnectedIbProperty = DependencyProperty.Register("IsConnectedIb", typeof(bool), typeof(MainWindowViewModel), new PropertyMetadata(default(bool)));
             PortIbProperty = DependencyProperty.Register("PortIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ClientIdIbProperty = DependencyProperty.Register("ClientIdIb", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             LogIbProperty = DependencyProperty.Register("LogIb", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-    }
+        }
 
         /// <summary>
         /// MainWindowViewModel
         /// </summary>
         public MainWindowViewModel()
         {
-            ibClient = new IBClient(signal);
-
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
             ConnectionString = Configuration.Instance["ConnectionString"];
@@ -136,7 +129,11 @@ namespace FmpDataTool
             timer = new DispatcherTimer();
             timer.Tick += Timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 0, 0, 25);
+
+            IBClient.Instance.Message += IbClient_Message;
         }
+
+        
 
         /// <summary>
         /// UrlStockList
@@ -335,15 +332,6 @@ namespace FmpDataTool
         {
             get { return (string)GetValue(ErrorLogFinancialsProperty); }
             set { SetValue(ErrorLogFinancialsProperty, value); }
-        }
-
-        /// <summary>
-        /// IsConnectedIb
-        /// </summary>
-        public bool IsConnectedIb
-        {
-            get { return (bool)GetValue(IsConnectedIbProperty); }
-            set { SetValue(IsConnectedIbProperty, value); }
         }
 
         /// <summary>
@@ -647,81 +635,17 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private void ConnectToIb(object p)
         {
-            if (!IsConnectedIb)
-            {
-                string host = Configuration.Instance["Localhost"];
-
-                try
-                {
-                    ibClient.ClientSocket.eConnect(host, PortIb, ClientIdIb);
-                    var reader = new EReader(ibClient.ClientSocket, signal);
-                    reader.Start();
-                    new Thread(() => {
-                        var connectionMessageSent = false;
-                        while (ibClient.ClientSocket.IsConnected()) 
-                        { 
-                            if(!connectionMessageSent)
-                            {
-                                Dispatcher.Invoke(() => { LogIb += "OK! IB server connection established."; });
-                                connectionMessageSent = true;
-                            }
-                            signal.waitForSignal(); 
-                            reader.processMsgs(); 
-                        } 
-                    }) { IsBackground = true }.Start();
-                }
-                catch (Exception)
-                {
-                    LogIb += "\n\rERROR! Please check your IB connection attributes.";
-                    HandleErrorMessage(new ErrorMessage(-1, -1, "Please check your IB connection attributes."));
-                }
-            }
-            else
-            {
-                IsConnectedIb = false;
-                ibClient.ClientSocket.eDisconnect();
-            }
+            IBClient.Instance.Connect(Configuration.Instance["Localhost"], PortIb, ClientIdIb);
         }
 
-        private void HandleErrorMessage(ErrorMessage message)
+        /// <summary>
+        /// IbClient_Message
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="message"></param>
+        private void IbClient_Message(object sender, string message)
         {
-            // TODO
-
-            var test = 0;
-            
-            //ShowMessageOnPanel("Request " + message.RequestId + ", Code: " + message.ErrorCode + " - " + message.Message);
-
-            //if (message.RequestId > MarketDataManager.TICK_ID_BASE && message.RequestId < DeepBookManager.TICK_ID_BASE)
-            //    marketDataManager.NotifyError(message.RequestId);
-            //else if (message.RequestId > DeepBookManager.TICK_ID_BASE && message.RequestId < HistoricalDataManager.HISTORICAL_ID_BASE)
-            //{
-            //    if (message.ErrorCode != 2151)
-            //    {
-            //        deepBookManager.NotifyError(message.RequestId);
-            //    }
-            //}
-            //else if (message.RequestId == ContractManager.CONTRACT_DETAILS_ID)
-            //{
-            //    contractManager.HandleRequestError(message.RequestId);
-            //    searchContractDetails.Enabled = true;
-            //}
-            //else if (message.RequestId == ContractManager.FUNDAMENTALS_ID)
-            //{
-            //    contractManager.HandleRequestError(message.RequestId);
-            //    fundamentalsQueryButton.Enabled = true;
-            //}
-            //else if (message.RequestId == OptionsManager.OPTIONS_ID_BASE)
-            //{
-            //    optionsManager.Clear();
-            //    queryOptionChain.Enabled = true;
-            //}
-            //else if (message.RequestId > OptionsManager.OPTIONS_ID_BASE)
-            //{
-            //    queryOptionChain.Enabled = true;
-            //}
-            //if (message.ErrorCode == 202)
-            //{
-            //}
+            Dispatcher.Invoke(() => { LogIb += "\r\n" + message; });
         }
 
         /// <summary>

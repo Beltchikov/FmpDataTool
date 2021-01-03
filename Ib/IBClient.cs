@@ -8,14 +8,89 @@ using IBApi;
 using System.Threading;
 using System.Threading.Tasks;
 using IBSampleApp.messages;
+using IBSampleApp;
 
 namespace FmpDataTool.Ib
 {
+    /// <summary>
+    /// IBClient
+    /// Class EClient is aggregated through EClientSocket
+    /// </summary>
     public class IBClient : EWrapper
     {
+        private static IBClient _ibClient;
+        private static readonly object lockObject = new object();
+
+        private static EReaderMonitorSignal signal;
         private EClientSocket clientSocket;
         private int nextOrderId;
         private int clientId;
+
+        public delegate void MessageDelegate(object sender, string message);
+        public event MessageDelegate Message;
+
+        IBClient() { }
+
+        /// <summary>
+        /// Instance
+        /// </summary>
+        public static IBClient Instance
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    if (_ibClient == null)
+                    {
+                        signal = new EReaderMonitorSignal();
+                        _ibClient = new IBClient(signal);
+                    }
+                    return _ibClient;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Connect
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="portIb"></param>
+        /// <param name="clientIdIb"></param>
+        public void Connect(string host, int portIb, int clientIdIb)
+        {
+            if (!IsConnectedIb)
+            {
+                try
+                {
+                    ClientSocket.eConnect(host, portIb, clientIdIb);
+                    var reader = new EReader(ClientSocket, signal);
+                    reader.Start();
+                    new Thread(() => {
+                        var connectionMessageSent = false;
+                        while (this.ClientSocket.IsConnected())
+                        {
+                            if(!connectionMessageSent)
+                            {
+                                Message.Invoke(this, "OK! Connection with IB server established.");
+                                connectionMessageSent = true;
+                            }
+                            signal.waitForSignal();
+                            reader.processMsgs();
+                        }
+                    })
+                    { IsBackground = true }.Start();
+                }
+                catch (Exception)
+                {
+                    Message.Invoke(this, "ERROR! Please check your IB connection attributes.");
+                }
+            }
+            else
+            {
+                IsConnectedIb = false;
+                ClientSocket.eDisconnect();
+            }
+        }
 
         public Task<Contract> ResolveContractAsync(int conId, string refExch)
         {
@@ -129,6 +204,8 @@ namespace FmpDataTool.Ib
             get { return nextOrderId; }
             set { nextOrderId = value; }
         }
+
+        public bool IsConnectedIb { get; private set; }
 
         public event Action<int, int, string, Exception> Error;
 
