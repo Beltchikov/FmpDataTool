@@ -636,8 +636,7 @@ namespace FmpDataTool
         {
             IBClient.Instance.Connect(Configuration.Instance["Localhost"], PortIb, ClientIdIb);
             IBClient.Instance.RequestFundamentals("IBKR", "USD");
-
-            
+            //IBClient.Instance.Disonnect();
         }
 
         private void IbClient_FundamentalData(IBSampleApp.messages.FundamentalsMessage obj)

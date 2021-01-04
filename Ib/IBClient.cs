@@ -98,12 +98,32 @@ namespace FmpDataTool.Ib
             }
         }
 
+        /// <summary>
+        /// Disonnect
+        /// </summary>
+        public void Disonnect()
+        {
+            try
+            {
+                Message.Invoke(this, "Disconecting...");
+                IsConnectedIb = false;
+                ClientSocket.eDisconnect();
+                Message.Invoke(this, "OK! Disconnected from IB server.");
+            }
+            catch (Exception exception)
+            {
+                Message.Invoke(this, exception.ToString());
+                throw exception;
+            }
+        }
+
         public void RequestFundamentals(String symbol, string currency)
         {
             if (!fundamentalsRequestActive)
             {
                 fundamentalsRequestActive = true;
-                Contract contract = new Contract {
+                Contract contract = new Contract
+                {
                     SecType = SECURITY_TYPE_STOCK,
                     Symbol = symbol,
                     Currency = currency,
