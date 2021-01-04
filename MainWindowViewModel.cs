@@ -131,9 +131,8 @@ namespace FmpDataTool
             timer.Interval = new TimeSpan(0, 0, 0, 0, 25);
 
             IBClient.Instance.Message += IbClient_Message;
+            IBClient.Instance.FundamentalData += IbClient_FundamentalData;
         }
-
-        
 
         /// <summary>
         /// UrlStockList
@@ -636,6 +635,14 @@ namespace FmpDataTool
         private void ConnectToIb(object p)
         {
             IBClient.Instance.Connect(Configuration.Instance["Localhost"], PortIb, ClientIdIb);
+            IBClient.Instance.RequestFundamentals("IBKR", "USD");
+
+            
+        }
+
+        private void IbClient_FundamentalData(IBSampleApp.messages.FundamentalsMessage obj)
+        {
+            var test = 0;
         }
 
         /// <summary>

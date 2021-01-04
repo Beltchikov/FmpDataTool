@@ -18,9 +18,13 @@ namespace FmpDataTool.Ib
     /// </summary>
     public class IBClient : EWrapper
     {
+        private const int FUNDAMENTALS_ID = 60000002;
+        private const string SECURITY_TYPE_STOCK = "STK";
+        private const string EXCHANGE_SMART = "SMART";
+        private const string REPORT_TYPE_FIN_STATEMENTS = "ReportsFinStatements";
+
         private static IBClient _ibClient;
         private static readonly object lockObject = new object();
-
         private static EReaderMonitorSignal signal;
         private EClientSocket clientSocket;
         private int nextOrderId;
@@ -65,17 +69,19 @@ namespace FmpDataTool.Ib
                     ClientSocket.eConnect(host, portIb, clientIdIb);
                     var reader = new EReader(ClientSocket, signal);
                     reader.Start();
-                    new Thread(() => {
+                    new Thread(() =>
+                    {
                         var connectionMessageSent = false;
                         while (this.ClientSocket.IsConnected())
                         {
-                            if(!connectionMessageSent)
+                            if (!connectionMessageSent)
                             {
                                 Message.Invoke(this, "OK! Connection with IB server established.");
                                 connectionMessageSent = true;
                             }
                             signal.waitForSignal();
                             reader.processMsgs();
+                            //var message = reader.get
                         }
                     })
                     { IsBackground = true }.Start();
@@ -89,6 +95,21 @@ namespace FmpDataTool.Ib
             {
                 IsConnectedIb = false;
                 ClientSocket.eDisconnect();
+            }
+        }
+
+        public void RequestFundamentals(String symbol, string currency)
+        {
+            if (!fundamentalsRequestActive)
+            {
+                fundamentalsRequestActive = true;
+                Contract contract = new Contract {
+                    SecType = SECURITY_TYPE_STOCK,
+                    Symbol = symbol,
+                    Currency = currency,
+                    Exchange = EXCHANGE_SMART
+                };
+                ClientSocket.reqFundamentalData(FUNDAMENTALS_ID, contract, REPORT_TYPE_FIN_STATEMENTS, new List<TagValue>());
             }
         }
 
@@ -186,6 +207,7 @@ namespace FmpDataTool.Ib
         }
 
         SynchronizationContext sc;
+        private bool fundamentalsRequestActive;
 
         public IBClient(EReaderSignal signal)
         {
@@ -990,7 +1012,7 @@ namespace FmpDataTool.Ib
             var tmp = historicalTickLast;
 
             if (tmp != null)
-                ticks.ToList().ForEach(tick => sc.Post((t) => 
+                ticks.ToList().ForEach(tick => sc.Post((t) =>
                     tmp(new HistoricalTickLastMessage(reqId, tick.Time, tick.TickAttribLast, tick.Price, tick.Size, tick.Exchange, tick.SpecialConditions)), null));
         }
 
