@@ -15,6 +15,8 @@ using Microsoft.Win32;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using FmpDataContext;
+using FmpDataContext.Model;
 
 namespace FmpDataTool
 {
@@ -82,7 +84,7 @@ namespace FmpDataTool
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-    }
+        }
 
         /// <summary>
         /// MainWindowViewModel
@@ -428,12 +430,12 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private void SaveToDatabase(object p)
         {
-            if (DataContext.Instance.Stocks.Any())
+            if (DataContext.Instance(Configuration.Instance["ConnectionString"]).Stocks.Any())
             {
                 MessageBoxResult messageBoxResult = MessageBox.Show("Database table 'Stocks' has already data. Do you want to overwrite it?", "Warning! Data exists!", MessageBoxButton.YesNo);
                 if (messageBoxResult == MessageBoxResult.Yes)
                 {
-                    DataContext.Instance.Stocks.RemoveRange(DataContext.Instance.Stocks);
+                    DataContext.Instance(Configuration.Instance["ConnectionString"]).Stocks.RemoveRange(DataContext.Instance(Configuration.Instance["ConnectionString"]).Stocks);
                 }
                 else
                 {
@@ -441,11 +443,72 @@ namespace FmpDataTool
                 }
             }
 
+            PrepareStockData(StockList, out List<Stock> stocksCleaned, out List<FmpSymbolCompany> fmpSymbolCompanyArray);
+            
             LogStocks += "Saving to database...";
-            DataContext.Instance.Stocks.AddRange(StockList);
-            DataContext.Instance.SaveChanges();
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).Stocks.AddRange(stocksCleaned);
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).FmpSymbolCompany.AddRange(fmpSymbolCompanyArray);
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
             LogStocks += "\r\nOK! Saved to database.";
 
+        }
+
+        /// <summary>
+        /// PrepareStockData
+        /// </summary>
+        /// <param name="stockList"></param>
+        /// <param name="stocksCleaned"></param>
+        /// <param name="fmpSymbolCompanyArray"></param>
+        private void PrepareStockData(Stock[] stockList, out List<Stock> stocksCleaned, out List<FmpSymbolCompany> fmpSymbolCompanyArray)
+        {
+            stocksCleaned = new List<Stock>();
+
+            stocksCleaned = StockList.Where(s => !string.IsNullOrWhiteSpace(s.Symbol)).ToList();
+            stocksCleaned = StockList.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList();
+            stocksCleaned = stocksCleaned.Select(s => new Stock
+            {
+                Symbol = s.Symbol.Trim().ToUpper(),
+                Name = s.Name.Trim(),
+                Price = s.Price,
+                Exchange = s.Exchange
+            }).ToList();
+            var companiesWithMultipleSymbols = CompaniesWithMultipleSymbols(stocksCleaned);
+            stocksCleaned = stocksCleaned.Except(companiesWithMultipleSymbols).ToList();
+            var symbolsWithMultipleCompanyName = SymbolsWithMultipleCompanyName(stocksCleaned);
+            stocksCleaned = stocksCleaned.Except(symbolsWithMultipleCompanyName).ToList();
+            
+            fmpSymbolCompanyArray = companiesWithMultipleSymbols.Select(c => c.ToFmpSymbolCompany()).ToList();
+            fmpSymbolCompanyArray.AddRange(symbolsWithMultipleCompanyName.Select(c => c.ToFmpSymbolCompany()));
+        }
+
+        /// <summary>
+        /// RemoveDuplicateCompanies
+        /// </summary>
+        /// <param name="stockList"></param>
+        /// <returns></returns>
+        private Stock[] CompaniesWithMultipleSymbols(List<Stock> stockList)
+        {
+            var companiesWithMultipleSymbols = (from stock in stockList
+                                                group stock by stock.Name.ToUpper() into newGroup
+                                                where newGroup.Count() > 1
+                                                select newGroup.Key).ToArray();
+
+            return stockList.Where(s => companiesWithMultipleSymbols.Contains(s.Name)).ToArray();
+        }
+
+        /// <summary>
+        /// SymbolsWithMultipleCompanyName
+        /// </summary>
+        /// <param name="stockList"></param>
+        /// <returns></returns>
+        private Stock[] SymbolsWithMultipleCompanyName(List<Stock> stockList)
+        {
+            var symbolsWithMultipleCompanyName = (from stock in stockList
+                                                  group stock by stock.Symbol into newGroup
+                                                  where newGroup.Count() > 1
+                                                  select newGroup.Key).ToArray();
+
+            return stockList.Where(s => symbolsWithMultipleCompanyName.Contains(s.Symbol)).ToArray();
         }
 
         /// <summary>
@@ -565,8 +628,8 @@ namespace FmpDataTool
             {
                 lock (lockObject)
                 {
-                    DataContext.Instance.Set<TEntity>().AddRange(financialDocument);
-                    DataContext.Instance.SaveChanges();
+                    DataContext.Instance(Configuration.Instance["ConnectionString"]).Set<TEntity>().AddRange(financialDocument);
+                    DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
                     Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
                 }
             }
@@ -593,12 +656,12 @@ namespace FmpDataTool
         private Guid LogTransferStart(DateTime startTime)
         {
             var dataTranferId = Guid.NewGuid();
-            DataContext.Instance.DataTransfer.Add(new DataTransfer
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).DataTransfer.Add(new DataTransfer
             {
                 Id = dataTranferId,
                 Start = startTime
             });
-            DataContext.Instance.SaveChanges();
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
             return dataTranferId;
         }
 
@@ -615,7 +678,7 @@ namespace FmpDataTool
         private Guid LogBatchStart(Guid dataTransferId, DateTime now, string startSymbol, string endSymbol, int batchNr, int batchQuantity)
         {
             var batchId = Guid.NewGuid();
-            DataContext.Instance.Batches.Add(new Batch
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).Batches.Add(new Batch
             {
                 Id = batchId,
                 DataTransferId = dataTransferId,
@@ -623,7 +686,7 @@ namespace FmpDataTool
                 StartSymbol = startSymbol,
                 EndSymbol = endSymbol
             });
-            DataContext.Instance.SaveChanges();
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
             return batchId;
         }
 
@@ -635,8 +698,8 @@ namespace FmpDataTool
         /// <param name="batchNr"></param>
         private void LogBatchEnd(Guid batchId, DateTime now, int batchNr)
         {
-            DataContext.Instance.Batches.First(b => b.Id == batchId).End = now;
-            DataContext.Instance.SaveChanges();
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).Batches.First(b => b.Id == batchId).End = now;
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
         }
 
         /// <summary>
@@ -646,8 +709,8 @@ namespace FmpDataTool
         /// <param name="now"></param>
         private void LogTransferEnd(Guid dataTransferId, DateTime now)
         {
-            DataContext.Instance.DataTransfer.First(b => b.Id == dataTransferId).End = now;
-            DataContext.Instance.SaveChanges();
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).DataTransfer.First(b => b.Id == dataTransferId).End = now;
+            DataContext.Instance(Configuration.Instance["ConnectionString"]).SaveChanges();
         }
     }
 }
