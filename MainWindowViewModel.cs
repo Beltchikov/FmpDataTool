@@ -46,6 +46,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty CurrentDocumentProperty;
         public static readonly DependencyProperty ErrorLogFinancialsProperty;
         public static readonly DependencyProperty StocksRecievedProperty;
+        public static readonly DependencyProperty SymbolCountProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -84,14 +85,13 @@ namespace FmpDataTool
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StocksRecievedProperty = DependencyProperty.Register("StocksRecieved", typeof(StocksRecieved), typeof(MainWindowViewModel), new PropertyMetadata(default(StocksRecieved)));
+            SymbolCountProperty = DependencyProperty.Register("SymbolCount", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
+        }
 
-
-    }
-
-    /// <summary>
-    /// MainWindowViewModel
-    /// </summary>
-    public MainWindowViewModel()
+        /// <summary>
+        /// MainWindowViewModel
+        /// </summary>
+        public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
@@ -315,6 +315,15 @@ namespace FmpDataTool
         }
 
         /// <summary>
+        /// SymbolCount
+        /// </summary>
+        public int SymbolCount
+        {
+            get { return (int)GetValue(SymbolCountProperty); }
+            set { SetValue(SymbolCountProperty, value); }
+        }
+
+        /// <summary>
         /// GetStockList
         /// </summary>
         /// <param name="param"></param>
@@ -352,7 +361,8 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+            //SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
 
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
@@ -417,8 +427,8 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
-
+            //SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
         }
 
         /// <summary>
@@ -450,7 +460,7 @@ namespace FmpDataTool
         /// <returns></returns>
         private bool OverwriteDataConfirmations()
         {
-            if(!OverwriteDataConfirmation(DataContext.Stocks, "Stocks"))
+            if (!OverwriteDataConfirmation(DataContext.Stocks, "Stocks"))
             {
                 return false;
             }
