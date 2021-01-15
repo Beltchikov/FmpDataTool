@@ -361,7 +361,7 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            //SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsTop100AsText;
             SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
 
             timer.Stop();
@@ -427,7 +427,7 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            //SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsTop100AsText;
             SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
         }
 
