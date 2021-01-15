@@ -17,6 +17,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using FmpDataContext;
 using FmpDataContext.Model;
+using FmpDataContext.StockList;
 
 namespace FmpDataTool
 {
@@ -28,7 +29,6 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlStockListProperty;
         public static readonly DependencyProperty StockListAsTextProperty;
         public static readonly DependencyProperty LogStocksProperty;
-        public static readonly DependencyProperty StockListProperty;
         public static readonly DependencyProperty ProgressValueStocksProperty;
         public static readonly DependencyProperty FileNameStockListProperty;
         public static readonly DependencyProperty ConnectionStringProperty;
@@ -36,7 +36,6 @@ namespace FmpDataTool
         public static readonly DependencyProperty UrlIncomeProperty;
         public static readonly DependencyProperty UrlBalanceProperty;
         public static readonly DependencyProperty UrlCashFlowProperty;
-        public static readonly DependencyProperty SymbolListProperty;
         public static readonly DependencyProperty SymbolListAsTextProperty;
         public static readonly DependencyProperty ProgressValueBatchesProperty;
         public static readonly DependencyProperty ProgressMaxBatchesProperty;
@@ -46,6 +45,7 @@ namespace FmpDataTool
         public static readonly DependencyProperty SymbolProcessInfoProperty;
         public static readonly DependencyProperty CurrentDocumentProperty;
         public static readonly DependencyProperty ErrorLogFinancialsProperty;
+        public static readonly DependencyProperty StocksRecievedProperty;
 
         public RelayCommand CommandRequestNavigate { get; set; }
         public RelayCommand CommandGetStockList { get; set; }
@@ -67,7 +67,6 @@ namespace FmpDataTool
             UrlStockListProperty = DependencyProperty.Register("UrlStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             StockListAsTextProperty = DependencyProperty.Register("StockListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             LogStocksProperty = DependencyProperty.Register("LogStocks", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            StockListProperty = DependencyProperty.Register("StockList", typeof(Stock[]), typeof(MainWindowViewModel), new PropertyMetadata(new Stock[0]));
             ProgressValueStocksProperty = DependencyProperty.Register("ProgressValueStocks", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             FileNameStockListProperty = DependencyProperty.Register("FileNameStockList", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
@@ -75,7 +74,6 @@ namespace FmpDataTool
             UrlIncomeProperty = DependencyProperty.Register("UrlIncome", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlBalanceProperty = DependencyProperty.Register("UrlBalance", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             UrlCashFlowProperty = DependencyProperty.Register("UrlCashFlow", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            SymbolListProperty = DependencyProperty.Register("SymbolList", typeof(string[]), typeof(MainWindowViewModel), new PropertyMetadata(new string[0]));
             SymbolListAsTextProperty = DependencyProperty.Register("SymbolListAsText", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ProgressValueBatchesProperty = DependencyProperty.Register("ProgressValueBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
             ProgressMaxBatchesProperty = DependencyProperty.Register("ProgressMaxBatches", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
@@ -85,12 +83,15 @@ namespace FmpDataTool
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-        }
+            StocksRecievedProperty = DependencyProperty.Register("StocksRecieved", typeof(StocksRecieved), typeof(MainWindowViewModel), new PropertyMetadata(default(StocksRecieved)));
 
-        /// <summary>
-        /// MainWindowViewModel
-        /// </summary>
-        public MainWindowViewModel()
+
+    }
+
+    /// <summary>
+    /// MainWindowViewModel
+    /// </summary>
+    public MainWindowViewModel()
         {
             UrlStockList = Configuration.Instance["UrlStockList"];
             FileNameStockList = Configuration.Instance["FileNameStockList"];
@@ -151,21 +152,12 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// StockList
+        /// StocksRecieved
         /// </summary>
-        public Stock[] StockList
+        public StocksRecieved StocksRecieved
         {
-            get { return (Stock[])GetValue(StockListProperty); }
-            set { SetValue(StockListProperty, value); }
-        }
-
-        /// <summary>
-        /// SymbolList
-        /// </summary>
-        public string[] SymbolList
-        {
-            get { return (string[])GetValue(SymbolListProperty); }
-            set { SetValue(SymbolListProperty, value); }
+            get { return (StocksRecieved)GetValue(StocksRecievedProperty); }
+            set { SetValue(StocksRecievedProperty, value); }
         }
 
         /// <summary>
@@ -329,8 +321,6 @@ namespace FmpDataTool
         /// <returns></returns>
         private async Task GetStockList(object param)
         {
-            Array.Clear(StockList, 0, StockList.Length);
-            Array.Clear(SymbolList, 0, SymbolList.Length);
             StockListAsText = string.Empty;
             SymbolListAsText = string.Empty;
 
@@ -359,10 +349,10 @@ namespace FmpDataTool
         /// <param name="stockList"></param>
         private void SetDataStockList(Stock[] stockList)
         {
-            StockList = stockList;
-            SymbolList = stockList.Select(s => s.Symbol).OrderBy(u => u).ToArray<string>();
-            StockListAsText = JsonSerializer.Serialize(StockList);
-            SymbolListAsText = SymbolList.Aggregate((r, n) => r + Environment.NewLine + n);
+            List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
+            StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
+            StockListAsText = StocksRecieved.AsJson;
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
 
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
@@ -422,9 +412,13 @@ namespace FmpDataTool
             }
 
             StockListAsText = File.ReadAllText(FileNameStockList);
-            StockList = JsonSerializer.Deserialize<Stock[]>(StockListAsText);
-            SymbolList = StockList.Select(s => s.Symbol).OrderBy(u => u).ToArray<string>();
-            SymbolListAsText = SymbolList.Aggregate((r, n) => r + Environment.NewLine + n);
+            var stockList = JsonSerializer.Deserialize<Stock[]>(StockListAsText);
+
+            List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
+            StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
+            StockListAsText = StocksRecieved.AsJson;
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsAsText;
+
         }
 
         /// <summary>
@@ -439,11 +433,12 @@ namespace FmpDataTool
                 return;
             }
 
-            PrepareStockData(StockList, out List<Stock> stocksCleaned, out List<FmpSymbolCompany> fmpSymbolCompanyArray);
+            var stocksCleaned = StocksRecieved.Cleaned.Distinct.ToList();
+            var fmpSymbolCompanyList = StocksRecieved.Cleaned.SymbolCompany;
 
-            LogStocks += "Saving to database...";
+            LogStocks += "\r\nSaving to database...";
             DataContext.Stocks.AddRange(stocksCleaned);
-            DataContext.FmpSymbolCompany.AddRange(fmpSymbolCompanyArray);
+            DataContext.FmpSymbolCompany.AddRange(fmpSymbolCompanyList);
             DataContext.SaveChanges();
             LogStocks += "\r\nOK! Saved to database.";
 
@@ -495,66 +490,6 @@ namespace FmpDataTool
         }
 
         /// <summary>
-        /// PrepareStockData
-        /// </summary>
-        /// <param name="stockList"></param>
-        /// <param name="stocksCleaned"></param>
-        /// <param name="fmpSymbolCompanyList"></param>
-        private void PrepareStockData(Stock[] stockList, out List<Stock> stocksCleaned, out List<FmpSymbolCompany> fmpSymbolCompanyList)
-        {
-            stocksCleaned = new List<Stock>();
-
-            stocksCleaned = StockList.Where(s => !string.IsNullOrWhiteSpace(s.Symbol)).ToList();
-            stocksCleaned = stocksCleaned.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList();
-            stocksCleaned = stocksCleaned.Where(s => !string.IsNullOrWhiteSpace(s.Exchange)).ToList();
-            stocksCleaned = stocksCleaned.Select(s => new Stock
-            {
-                Symbol = s.Symbol.Trim().ToUpper(),
-                Name = s.Name.Trim(),
-                Price = s.Price,
-                Exchange = s.Exchange
-            }).ToList();
-
-            var companiesWithMultipleSymbols = CompaniesWithMultipleSymbols(stocksCleaned);
-            stocksCleaned = stocksCleaned.Except(companiesWithMultipleSymbols, new CompanyNameComparer()).ToList();
-            var symbolsWithMultipleCompanyName = SymbolsWithMultipleCompanyName(stocksCleaned);
-            stocksCleaned = stocksCleaned.Except(symbolsWithMultipleCompanyName).ToList();
-
-            fmpSymbolCompanyList = companiesWithMultipleSymbols.Select(c => c.ToFmpSymbolCompany()).ToList();
-            fmpSymbolCompanyList.AddRange(symbolsWithMultipleCompanyName.Select(c => c.ToFmpSymbolCompany()));
-        }
-
-        /// <summary>
-        /// RemoveDuplicateCompanies
-        /// </summary>
-        /// <param name="stockList"></param>
-        /// <returns></returns>
-        private List<Stock> CompaniesWithMultipleSymbols(List<Stock> stockList)
-        {
-            var companiesWithMultipleSymbols = (from stock in stockList
-                                                group stock by stock.Name.ToUpper() into newGroup
-                                                where newGroup.Count() > 1
-                                                select newGroup.Key).ToList();
-
-            return stockList.Where(s => companiesWithMultipleSymbols.Contains(s.Name)).ToList();
-        }
-
-        /// <summary>
-        /// SymbolsWithMultipleCompanyName
-        /// </summary>
-        /// <param name="stockList"></param>
-        /// <returns></returns>
-        private List<Stock> SymbolsWithMultipleCompanyName(List<Stock> stockList)
-        {
-            var symbolsWithMultipleCompanyName = (from stock in stockList
-                                                  group stock by stock.Symbol into newGroup
-                                                  where newGroup.Count() > 1
-                                                  select newGroup.Key).ToList();
-
-            return stockList.Where(s => symbolsWithMultipleCompanyName.Contains(s.Symbol)).ToList();
-        }
-
-        /// <summary>
         /// GetFinancials
         /// </summary>
         /// <param name="p"></param>
@@ -563,10 +498,10 @@ namespace FmpDataTool
             try
             {
                 // Prepare batch calculation
-                SymbolList = SymbolListAsText.Split(Environment.NewLine).Where(s => !String.IsNullOrWhiteSpace(s)).ToArray();
-                int batchQuantity = SymbolList.Count() % BatchSize == 0
-                    ? SymbolList.Count() / BatchSize
-                    : SymbolList.Count() / BatchSize + 1;
+                var symbolsToProcess = StocksRecieved.Cleaned.Distinct.DocsMissing.Symbols;
+                int batchQuantity = symbolsToProcess.Count() % BatchSize == 0
+                    ? symbolsToProcess.Count() / BatchSize
+                    : symbolsToProcess.Count() / BatchSize + 1;
                 ProgressMaxBatches = batchQuantity;
                 ProgressMaxSymbols = BatchSize;
 
@@ -579,9 +514,9 @@ namespace FmpDataTool
                     BatchProcessInfo = $"Batch {batchNr} of {batchQuantity}";
 
                     List<string> batch;
-                    if (SymbolList.Skip(BatchSize * (batchNr - 1)).Any())
+                    if (symbolsToProcess.Skip(BatchSize * (batchNr - 1)).Any())
                     {
-                        batch = SymbolList.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
+                        batch = symbolsToProcess.Skip(BatchSize * (batchNr - 1)).Take(BatchSize).ToList();
                         if (batchNr > 1)
                         {
                             LogBatchEnd(batchId, DateTime.Now, batchNr - 1);
