@@ -433,17 +433,10 @@ namespace FmpDataTool
         /// <param name="p"></param>
         private void SaveToDatabase(object p)
         {
-            if (DataContext.Stocks.Any())
+            if (!OverwriteDataConfirmations())
             {
-                MessageBoxResult messageBoxResult = MessageBox.Show("Database table 'Stocks' has already data. Do you want to overwrite it?", "Warning! Data exists!", MessageBoxButton.YesNo);
-                if (messageBoxResult == MessageBoxResult.Yes)
-                {
-                    DataContext.Stocks.RemoveRange(DataContext.Stocks);
-                }
-                else
-                {
-                    return;
-                }
+                LogStocks += "\r\nCancelled!";
+                return;
             }
 
             PrepareStockData(StockList, out List<Stock> stocksCleaned, out List<FmpSymbolCompany> fmpSymbolCompanyArray);
@@ -454,6 +447,51 @@ namespace FmpDataTool
             DataContext.SaveChanges();
             LogStocks += "\r\nOK! Saved to database.";
 
+        }
+
+        /// <summary>
+        /// OverwriteDataConfirmation
+        /// </summary>
+        /// <returns></returns>
+        private bool OverwriteDataConfirmations()
+        {
+            if(!OverwriteDataConfirmation(DataContext.Stocks, "Stocks"))
+            {
+                return false;
+            }
+
+            if (!OverwriteDataConfirmation(DataContext.FmpSymbolCompany, "FmpSymbolCompany"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// OverwriteDataConfirmation
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="table"></param>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        private bool OverwriteDataConfirmation<T>(DbSet<T> table, string tableName) where T : class
+        {
+            if (table.Any())
+            {
+                MessageBoxResult messageBoxResult = MessageBox.Show($"Database table '{tableName}' has already data. Do you want to overwrite it?", "Warning! Data exists!", MessageBoxButton.YesNo);
+                if (messageBoxResult == MessageBoxResult.Yes)
+                {
+                    table.RemoveRange(table);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
