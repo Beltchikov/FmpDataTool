@@ -30,5 +30,19 @@ namespace FmpDataTool.Model
                 return Url[(lastIndxOfSlash+1)..idxQuestionMark];
             }
         }
+
+        /// <summary>
+        /// Copy
+        /// </summary>
+        /// <returns></returns>
+        public UrlAndType Copy()
+        {
+            return new UrlAndType
+            {
+                Url = Url,
+                DocumentName = DocumentName,
+                ReturnType = ReturnType
+            };
+        }
     }
 }

@@ -568,8 +568,9 @@ namespace FmpDataTool
                 while (ResponsePending)
                 { }
 
-                foreach (var urlAndType in UrlList)
+                foreach (var urlAndTypeTemplate in UrlList)
                 {
+                    var urlAndType = urlAndTypeTemplate.Copy();
                     while (ResponsePending)
                     { }
                     CurrentDocument = urlAndType.DocumentName;
@@ -622,7 +623,6 @@ namespace FmpDataTool
                 financialDocuments = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
                 if (financialDocuments.Any())
                 {
-                    _symbolDateAndDocsList.Clear();
                     foreach (var document in financialDocuments)
                     {
                         _symbolDateAndDocsList.Add(document);
@@ -636,7 +636,6 @@ namespace FmpDataTool
                             if (!string.IsNullOrWhiteSpace(saveResult))
                             {
                                 Dispatcher.Invoke(() => { ErrorLogFinancials.Add(saveResult); });
-                                completed.PersistenceFailed = true;
                             }
                         }
 
@@ -645,13 +644,29 @@ namespace FmpDataTool
                 }
                 else
                 {
-                    Dispatcher.Invoke(() => { CurrentDocument = "No data..."; });
+                    Dispatcher.Invoke(() => {
+                        ImportErrorFmpSymbol(urlAndType.Symbol);
+                        CurrentDocument = "No data..."; 
+                    });
                 }
             }
             catch (Exception exception)
             {
-                Dispatcher.Invoke(() => { ErrorLogFinancials.Add(exception.ToString()); });
+                Dispatcher.Invoke(() => {
+                    ImportErrorFmpSymbol(urlAndType.Symbol);
+                    ErrorLogFinancials.Add(exception.ToString()); 
+                });
             }
+        }
+
+        /// <summary>
+        /// ImportErrorFmpSymbol
+        /// </summary>
+        /// <param name="symbol"></param>
+        private void ImportErrorFmpSymbol(string symbol)
+        {
+            DataContext.ImportErrorFmpSymbol.Add(new ImportErrorFmpSymbol { Symbol = symbol, Timestamp = DateTime.Now });
+            DataContext.SaveChanges();
         }
 
         /// <summary>
