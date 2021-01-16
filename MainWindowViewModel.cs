@@ -18,8 +18,8 @@ using Microsoft.Extensions.Configuration;
 using FmpDataContext;
 using FmpDataContext.Model;
 using FmpDataContext.StockList;
-using FmpDataContext.Temp;
 using System.Collections.ObjectModel;
+using FmpDataContext.SymbolDateAndDocs;
 
 namespace FmpDataTool
 {
