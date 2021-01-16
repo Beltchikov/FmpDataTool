@@ -366,8 +366,8 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsTop100AsText;
-            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
+            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.ToList().Count();
 
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
@@ -432,8 +432,8 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissing.SymbolsTop100AsText;
-            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissing.ToList().Count();
+            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
+            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.ToList().Count();
         }
 
         /// <summary>
@@ -513,7 +513,7 @@ namespace FmpDataTool
             try
             {
                 // Prepare batch calculation
-                var symbolsToProcess = StocksRecieved.Cleaned.Distinct.DocsMissing.Symbols;
+                var symbolsToProcess = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.Symbols;
                 int batchQuantity = symbolsToProcess.Count() % BatchSize == 0
                     ? symbolsToProcess.Count() / BatchSize
                     : symbolsToProcess.Count() / BatchSize + 1;
