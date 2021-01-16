@@ -573,9 +573,9 @@ namespace FmpDataTool
                     while (ResponsePending)
                     { }
                     CurrentDocument = urlAndType.DocumentName;
-                    var url = urlAndType.Url.Replace("{SYMBOL}", symbol);
+                    urlAndType.Url = urlAndType.Url.Replace("{SYMBOL}", symbol);
                     using var httpClient = new HttpClient();
-                    await httpClient.GetAsync(url).ContinueWith((r) => OnRequestCompleteSwitch(r, urlAndType));
+                    await httpClient.GetAsync(urlAndType.Url).ContinueWith((r) => OnRequestCompleteSwitch(r, urlAndType));
                 }
                 symbolBefore = symbol;
             }
@@ -591,15 +591,15 @@ namespace FmpDataTool
         {
             if (urlAndType.ReturnType == typeof(IncomeStatement))
             {
-                await OnRequestCompleteAsync<IncomeStatement>(requestTask);
+                await OnRequestCompleteAsync<IncomeStatement>(requestTask, urlAndType);
             }
             else if (urlAndType.ReturnType == typeof(BalanceSheet))
             {
-                await OnRequestCompleteAsync<BalanceSheet>(requestTask);
+                await OnRequestCompleteAsync<BalanceSheet>(requestTask, urlAndType);
             }
             else if (urlAndType.ReturnType == typeof(CashFlowStatement))
             {
-                await OnRequestCompleteAsync<CashFlowStatement>(requestTask);
+                await OnRequestCompleteAsync<CashFlowStatement>(requestTask, urlAndType);
             }
             else
             {
@@ -611,7 +611,7 @@ namespace FmpDataTool
         /// OnRequestIncomeCompleteAsync
         /// </summary>
         /// <param name="r"></param>
-        private async Task OnRequestCompleteAsync<TEntity>(Task<HttpResponseMessage> requestTask) where TEntity : class
+        private async Task OnRequestCompleteAsync<TEntity>(Task<HttpResponseMessage> requestTask, UrlAndType urlAndType) where TEntity : class
         {
             object lockObject = new object();
 
@@ -622,6 +622,7 @@ namespace FmpDataTool
                 financialDocuments = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
                 if (financialDocuments.Any())
                 {
+                    _symbolDateAndDocsList.Clear();
                     foreach (var document in financialDocuments)
                     {
                         _symbolDateAndDocsList.Add(document);
