@@ -19,6 +19,7 @@ using FmpDataContext;
 using FmpDataContext.Model;
 using FmpDataContext.StockList;
 using FmpDataContext.Temp;
+using System.Collections.ObjectModel;
 
 namespace FmpDataTool
 {
@@ -86,7 +87,7 @@ namespace FmpDataTool
             BatchProcessInfoProperty = DependencyProperty.Register("BatchProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             SymbolProcessInfoProperty = DependencyProperty.Register("SymbolProcessInfo", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
             CurrentDocumentProperty = DependencyProperty.Register("CurrentDocument", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
-            ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(string), typeof(MainWindowViewModel), new PropertyMetadata(string.Empty));
+            ErrorLogFinancialsProperty = DependencyProperty.Register("ErrorLogFinancials", typeof(ObservableCollection<string>), typeof(MainWindowViewModel), new PropertyMetadata(new ObservableCollection<string>()));
             StocksRecievedProperty = DependencyProperty.Register("StocksRecieved", typeof(StocksRecieved), typeof(MainWindowViewModel), new PropertyMetadata(default(StocksRecieved)));
             SymbolCountProperty = DependencyProperty.Register("SymbolCount", typeof(int), typeof(MainWindowViewModel), new PropertyMetadata(0));
         }
@@ -312,9 +313,9 @@ namespace FmpDataTool
         /// <summary>
         /// ErrorLogFinancials
         /// </summary>
-        public string ErrorLogFinancials
+        public ObservableCollection<string> ErrorLogFinancials
         {
-            get { return (string)GetValue(ErrorLogFinancialsProperty); }
+            get { return (ObservableCollection<string>)GetValue(ErrorLogFinancialsProperty); }
             set { SetValue(ErrorLogFinancialsProperty, value); }
         }
 
@@ -546,7 +547,7 @@ namespace FmpDataTool
             }
             catch (Exception exception)
             {
-                ErrorLogFinancials += Environment.NewLine + exception.ToString();
+                ErrorLogFinancials.Add(exception.ToString());
                 throw;
             }
         }
@@ -633,7 +634,7 @@ namespace FmpDataTool
                             var saveResult = completed.SaveInDatabase();
                             if (!string.IsNullOrWhiteSpace(saveResult))
                             {
-                                Dispatcher.Invoke(() => { ErrorLogFinancials += $"\r\n" + saveResult; });
+                                Dispatcher.Invoke(() => { ErrorLogFinancials.Add(saveResult); });
                                 completed.PersistenceFailed = true;
                             }
                         }
@@ -643,12 +644,12 @@ namespace FmpDataTool
                 }
                 else
                 {
-                    CurrentDocument = "No data...";
+                    Dispatcher.Invoke(() => { CurrentDocument = "No data..."; });
                 }
             }
             catch (Exception exception)
             {
-                Dispatcher.Invoke(() => { ErrorLogFinancials += $"\r\n" + exception.ToString(); });
+                Dispatcher.Invoke(() => { ErrorLogFinancials.Add(exception.ToString()); });
             }
         }
 

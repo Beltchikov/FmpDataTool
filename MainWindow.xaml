@@ -367,10 +367,15 @@
                             <ColumnDefinition Width="10"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="1">Errors:</TextBlock>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
+                        <!--<ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="2">
                             <TextBox x:Name="txtLogFinancials"  
                                  Text="{Binding ErrorLogFinancials}"/>
-                        </ScrollViewer>
+                        </ScrollViewer>-->
+                        <ListBox ItemsSource="{Binding ErrorLogFinancials}"
+                    x:Name="listBoxLogSymbols"  
+                    Loaded="listBoxLog_Loaded"
+                    Grid.Column="2">
+                        </ListBox>
                     </Grid>
                 </Grid>
             </TabItem>

@@ -24,5 +24,49 @@ namespace FmpDataTool
         {
             InitializeComponent();
         }
+
+        /// <summary>
+        /// listBoxLog_Loaded
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void listBoxLog_Loaded(object sender, RoutedEventArgs e)
+        {
+            var listBox = (ListBox)sender;
+
+            var scrollViewer = FindScrollViewer(listBox);
+
+            if (scrollViewer != null)
+            {
+                scrollViewer.ScrollChanged += (o, args) =>
+                {
+                    if (args.ExtentHeightChange > 0)
+                        scrollViewer.ScrollToBottom();
+                };
+            }
+        }
+
+        /// <summary>
+        /// FindScrollViewer
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
+        private static ScrollViewer FindScrollViewer(DependencyObject root)
+        {
+            var queue = new Queue<DependencyObject>(new[] { root });
+
+            do
+            {
+                var item = queue.Dequeue();
+
+                if (item is ScrollViewer)
+                    return (ScrollViewer)item;
+
+                for (var i = 0; i < VisualTreeHelper.GetChildrenCount(item); i++)
+                    queue.Enqueue(VisualTreeHelper.GetChild(item, i));
+            } while (queue.Count > 0);
+
+            return null;
+        }
     }
 }
