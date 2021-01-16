@@ -630,7 +630,7 @@ namespace FmpDataTool
 
                     lock (lockObject)
                     {
-                        foreach (SymbolDateAndDocs completed in _symbolDateAndDocsList.CompletedButNotSaved)
+                        foreach (SymbolDateAndDocs completed in _symbolDateAndDocsList.CompletedButNotSaved.Where(s => !s.PersistenceFailed))
                         {
                             var saveResult = completed.SaveInDatabase();
                             if (!string.IsNullOrWhiteSpace(saveResult))
@@ -665,8 +665,11 @@ namespace FmpDataTool
         /// <param name="symbol"></param>
         private void ImportErrorFmpSymbol(string symbol)
         {
-            DataContext.ImportErrorFmpSymbol.Add(new ImportErrorFmpSymbol { Symbol = symbol, Timestamp = DateTime.Now });
-            DataContext.SaveChanges();
+            if (!DataContext.ImportErrorFmpSymbol.Any(e => e.Symbol == symbol))
+            {
+                DataContext.ImportErrorFmpSymbol.Add(new ImportErrorFmpSymbol { Symbol = symbol, Timestamp = DateTime.Now });
+                DataContext.SaveChanges();
+            }
         }
 
         /// <summary>
