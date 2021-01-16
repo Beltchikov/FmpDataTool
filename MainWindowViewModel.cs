@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using FmpDataContext;
 using FmpDataContext.Model;
 using FmpDataContext.StockList;
+using FmpDataContext.Temp;
 
 namespace FmpDataTool
 {
@@ -59,6 +60,8 @@ namespace FmpDataTool
         private DataContext DataContext { get; set; }
 
         private DispatcherTimer timer;
+
+        private SymbolDateAndDocsList _symbolDateAndDocsList;
 
         /// <summary>
         /// MainWindowViewModel - Static
@@ -122,6 +125,7 @@ namespace FmpDataTool
             timer.Interval = new TimeSpan(0, 0, 0, 0, 25);
 
             DataContext = DataContext.Instance(Configuration.Instance["ConnectionString"]);
+            _symbolDateAndDocsList = new SymbolDateAndDocsList(DataContext);
         }
 
         /// <summary>
@@ -611,19 +615,40 @@ namespace FmpDataTool
             object lockObject = new object();
 
             var contentStream = await requestTask.Result.Content.ReadAsStreamAsync();
-            TEntity[] financialDocument = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
-            if (financialDocument.Any())
+            TEntity[] financialDocuments;
+            try
             {
-                lock (lockObject)
+                financialDocuments = await JsonSerializer.DeserializeAsync<TEntity[]>(contentStream);
+                if (financialDocuments.Any())
                 {
-                    DataContext.Set<TEntity>().AddRange(financialDocument);
-                    DataContext.SaveChanges();
-                    Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocument); });
+                    foreach (var document in financialDocuments)
+                    {
+                        _symbolDateAndDocsList.Add(document);
+                    }
+
+                    lock (lockObject)
+                    {
+                        foreach (SymbolDateAndDocs completed in _symbolDateAndDocsList.CompletedButNotSaved)
+                        {
+                            var saveResult = completed.SaveInDatabase();
+                            if (!string.IsNullOrWhiteSpace(saveResult))
+                            {
+                                Dispatcher.Invoke(() => { ErrorLogFinancials += $"\r\n" + saveResult; });
+                                completed.PersistenceFailed = true;
+                            }
+                        }
+
+                        Dispatcher.Invoke(() => { AfterResponseProcessed(financialDocuments); });
+                    }
+                }
+                else
+                {
+                    CurrentDocument = "No data...";
                 }
             }
-            else
+            catch (Exception exception)
             {
-                CurrentDocument = "No data...";
+                Dispatcher.Invoke(() => { ErrorLogFinancials += $"\r\n" + exception.ToString(); });
             }
         }
 
