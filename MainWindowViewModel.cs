@@ -363,7 +363,8 @@ namespace FmpDataTool
         /// <param name="stockList"></param>
         private void SetDataStockList(Stock[] stockList)
         {
-            List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
+            List<string> years = Configuration.Instance["Years"].Split(",").Select(s => s.Trim()).ToList();
+            List<string> dates = YearsToDates(years);
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
             SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
@@ -373,6 +374,30 @@ namespace FmpDataTool
             LogStocks += "\r\nOK! stock list recieved.";
             ProgressValueStocks = 0;
         }
+
+        /// <summary>
+        /// YearsToDates
+        /// </summary>
+        /// <param name="years"></param>
+        /// <returns></returns>
+        private List<string> YearsToDates(List<string> years)
+        {
+            List<string> dates = new List<string>();
+
+            foreach(var year in years)
+            {
+                dates.Add(year + "-03-31");
+                dates.Add(year + "-04-30");
+                dates.Add(year + "-06-30");
+                dates.Add(year + "-07-31");
+                dates.Add(year + "-08-31");
+                dates.Add(year + "-09-30");
+                dates.Add(year + "-12-31");
+            }
+
+            return dates;
+        }
+
 
         /// <summary>
         /// Timer_Tick
@@ -429,7 +454,8 @@ namespace FmpDataTool
             StockListAsText = File.ReadAllText(FileNameStockList);
             var stockList = JsonSerializer.Deserialize<Stock[]>(StockListAsText);
 
-            List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
+            List<string> years = Configuration.Instance["Years"].Split(",").Select(s => s.Trim()).ToList();
+            List<string> dates = YearsToDates(years);
             StocksRecieved = new StocksRecieved(stockList.ToList(), dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
             SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
