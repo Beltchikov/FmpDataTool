@@ -695,7 +695,7 @@ namespace FmpDataTool
             {
                 Id = dataTranferId,
                 Start = startTime
-            });
+            }); ;
             DataContext.SaveChanges();
             return dataTranferId;
         }
