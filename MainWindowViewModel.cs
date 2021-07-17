@@ -59,7 +59,8 @@ namespace FmpDataTool
         public RelayCommand CommandGetFinancials { get; set; }
 
         private DataContext DataContext { get; set; }
-
+        private bool ExcludeSymbolsWithDotFromUpdate { get; set; }
+        
         private DispatcherTimer timer;
 
         private SymbolDateAndDocsList _symbolDateAndDocsList;
@@ -104,6 +105,8 @@ namespace FmpDataTool
             UrlIncome = Configuration.Instance["UrlIncome"];
             UrlBalance = Configuration.Instance["UrlBalance"];
             UrlCashFlow = Configuration.Instance["UrlCashFlow"];
+            ExcludeSymbolsWithDotFromUpdate = Convert.ToBoolean(Configuration.Instance["ExcludeSymbolsWithDotFromUpdate"]);
+            
             UrlList = new List<UrlAndType> {
                 new UrlAndType{Url= UrlIncome, ReturnType = typeof(IncomeStatement), DocumentName= "Income Statement"},
                 new UrlAndType{Url= UrlBalance, ReturnType = typeof(BalanceSheet), DocumentName= "Balance Sheet"},
@@ -369,7 +372,10 @@ namespace FmpDataTool
             StockListAsText = StocksRecieved.AsJson;
 
             var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
-            docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            if (ExcludeSymbolsWithDotFromUpdate)
+            {
+                docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            }
             SymbolListAsText = docsMissingNoImportError.SymbolsTop100AsText;
 
             SymbolCount = docsMissingNoImportError.ToList().Count();
@@ -440,7 +446,10 @@ namespace FmpDataTool
             StockListAsText = StocksRecieved.AsJson;
 
             var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
-            docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            if (ExcludeSymbolsWithDotFromUpdate)
+            {
+                docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            }
             SymbolListAsText = docsMissingNoImportError.SymbolsTop100AsText;
             SymbolCount = docsMissingNoImportError.ToList().Count();
         }
@@ -523,7 +532,10 @@ namespace FmpDataTool
             {
                 // Prepare batch calculation
                 var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
-                docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+                if (ExcludeSymbolsWithDotFromUpdate)
+                {
+                    docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+                }
                 var symbolsToProcess = docsMissingNoImportError.Symbols;
 
                 int batchQuantity = symbolsToProcess.Count() % BatchSize == 0
