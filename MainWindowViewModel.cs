@@ -367,8 +367,12 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), years, dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
-            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.ToList().Count();
+
+            var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
+            docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            SymbolListAsText = docsMissingNoImportError.SymbolsTop100AsText;
+
+            SymbolCount = docsMissingNoImportError.ToList().Count();
 
             timer.Stop();
             LogStocks += "\r\nOK! stock list recieved.";
@@ -434,8 +438,11 @@ namespace FmpDataTool
             List<string> dates = Configuration.Instance["Dates"].Split(",").Select(s => s.Trim()).ToList();
             StocksRecieved = new StocksRecieved(stockList.ToList(), years, dates, DataContext);
             StockListAsText = StocksRecieved.AsJson;
-            SymbolListAsText = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.SymbolsTop100AsText;
-            SymbolCount = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.ToList().Count();
+
+            var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
+            docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+            SymbolListAsText = docsMissingNoImportError.SymbolsTop100AsText;
+            SymbolCount = docsMissingNoImportError.ToList().Count();
         }
 
         /// <summary>
@@ -515,7 +522,10 @@ namespace FmpDataTool
             try
             {
                 // Prepare batch calculation
-                var symbolsToProcess = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError.Symbols;
+                var docsMissingNoImportError = StocksRecieved.Cleaned.Distinct.DocsMissingNoImportError;
+                docsMissingNoImportError = ExcludeSymbolsWithDot(docsMissingNoImportError);
+                var symbolsToProcess = docsMissingNoImportError.Symbols;
+
                 int batchQuantity = symbolsToProcess.Count() % BatchSize == 0
                     ? symbolsToProcess.Count() / BatchSize
                     : symbolsToProcess.Count() / BatchSize + 1;
@@ -552,6 +562,17 @@ namespace FmpDataTool
                 ErrorLogFinancials.Add(exception.ToString());
                 throw;
             }
+        }
+
+        /// <summary>
+        /// ExcludeSymbolsWithDot
+        /// </summary>
+        /// <param name="inputStockList"></param>
+        /// <returns></returns>
+        private StockListBase ExcludeSymbolsWithDot(StockListBase inputStockList)
+        {
+            var outputStockList = inputStockList.ToList().Where(sl => !sl.Symbol.Contains(".")).ToList();
+            return new StockListBase(outputStockList, inputStockList.Years, inputStockList.Dates, inputStockList.DataContext);
         }
 
         /// <summary>
